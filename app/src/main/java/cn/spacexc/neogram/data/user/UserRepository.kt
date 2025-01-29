@@ -20,10 +20,12 @@ import org.drinkless.tdlib.TdApi.UserStatus
 
 object UserRepository {
     val users = MutableStateFlow(mapOf<Long, NeoUser>())
+    val mutex = Mutex()
 
     fun TdApi.Object.userHandler() {
         when (this) {
             is UpdateUser -> {
+                LogUtils.info("UpdateUser", "${user.id}")
                 val updatedMap = users.value.toMutableMap()
                 updatedMap[user.id] = NeoUser(user, user.status)
                 users.value = updatedMap

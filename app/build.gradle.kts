@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "cn.spacexc.neogram"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -70,4 +70,6 @@ dependencies {
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.custom.qr.generator)
     implementation(libs.accompanist.drawablepainter)
+    implementation(libs.commons.lang3)
+    implementation(libs.dotlottie.android)
 }

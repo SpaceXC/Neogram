@@ -1,38 +1,33 @@
 package cn.spacexc.neogram.ui.screen.chats
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.ViewModel
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.ChatTypePrivate
-import org.drinkless.tdlib.TdApi.User
 
 
 class ChatListViewModel : ViewModel() {
-    val chatList = combineChatListAndUsers(ChatListRepository.chatList, UserRepository.users)
+    val chatList = combineChatListAndUsers(ChatListRepository.chatList, UserRepository.users, ChatListRepository.chatActions)
 
     private fun combineChatListAndUsers(
         chatListFlow: Flow<List<ChatListRepository.ChatItem>>,
-        usersFlow: Flow<Map<Long, UserRepository.NeoUser>>
+        usersFlow: Flow<Map<Long, UserRepository.NeoUser>>,
+        actions: Flow<Map<Long, ChatListRepository.ChatAction>>
     ): Flow<List<ChatListRepository.ChatItem>> {
-        return combine(chatListFlow, usersFlow) { chatList, usersMap ->
+        return combine(chatListFlow, usersFlow, actions) { chatList, usersMap, actionsMap ->
             chatList.map { chat ->
+                val newChat = chat.copy()
                 if(chat.type is ChatTypePrivate) {
                     val userId = chat.type.userId
                     val user = usersMap[userId]
                     if (user != null) {
-                        chat.copy(userStatus = user.tgUser.status)
-                    } else {
-                        chat
+                        newChat.userStatus = user.status
                     }
                 }
-                else chat
+                newChat.chatAction = actionsMap[chat.id]
+                newChat
             }
         }
     }

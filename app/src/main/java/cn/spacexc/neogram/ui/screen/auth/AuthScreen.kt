@@ -76,7 +76,7 @@ fun AuthScreen(
                     painter = rememberDrawablePainter(viewModel.getQrCodeDrawable(text)),
                     contentDescription = "Qr Code",
                     contentScale = ContentScale.FillBounds,
-                    modifier = Modifier.fillMaxSize(0.85f).align(Alignment.Center)
+                    modifier = Modifier.fillMaxSize(0.82f).align(Alignment.Center)
                 )
             }
             Text(

@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSizeIn
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +41,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,16 +51,19 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.component.TgImage
+import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.theme.CardGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.textDescription
+import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.Chat
+import org.drinkless.tdlib.TdApi.ChatActionCancel
 import org.drinkless.tdlib.TdApi.ChatTypePrivate
 import org.drinkless.tdlib.TdApi.User
 import org.drinkless.tdlib.TdApi.UserStatusOnline
@@ -102,6 +109,7 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val chatList by viewModel.chatList.collectAsState(emptyList())
+    val users by UserRepository.users.collectAsState()
     LaunchedEffect(Unit) {
         ChatListRepository.getMainChatList()
     }
@@ -116,11 +124,18 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
                 start = 8.dp,
                 end = 8.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = scrollState
         ) {
             chatList.forEach { chat ->
                 item(key = chat.id) {
-                    ChatListItem(modifier = Modifier.animateItem(), chat = chat)
+                    ChatListItem(
+                        modifier = Modifier.animateItem().clickVfx {
+                            navController.navigate(MessagesScreen(chat.id, chat.title))
+                        },
+                        chat = chat,
+                        users = users.map { Pair(it.key, it.value.tgUser) }.toMap()
+                    )
                 }
             }
         }
@@ -128,7 +143,11 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
 }
 
 @Composable
-fun ChatListItem(modifier: Modifier = Modifier, chat: ChatListRepository.ChatItem) {
+fun ChatListItem(
+    modifier: Modifier = Modifier,
+    chat: ChatListRepository.ChatItem,
+    users: Map<Long, User>
+) {
     val localDensity = LocalDensity.current
     Box(
         modifier = modifier
@@ -190,59 +209,56 @@ fun ChatListItem(modifier: Modifier = Modifier, chat: ChatListRepository.ChatIte
                 }
             }
             Spacer(Modifier.width(4.dp))
-            Column(modifier = Modifier.onSizeChanged {
-                textHeight = with(localDensity) { it.height.toDp() }
-            }) {
-                Text(
-                    chat.title,
-                    color = Color.White,
-                    fontFamily = miSans,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                /*val shouldDisplaySenderName = chat.type is TdApi.ChatTypeBasicGroup   //是群组
-                        ||  //或者
-                        (chat.type is ChatTypeSupergroup && !(chat.type as ChatTypeSupergroup).isChannel)   //是Supergroup且不是频道
-                if (shouldDisplaySenderName) {
-                    if (chat.lastMessage?.senderId is MessageSenderUser) {
-                        val userId = (chat.lastMessage?.senderId as MessageSenderUser).userId
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .onSizeChanged {
+                        textHeight = with(localDensity) { it.height.toDp() }
+                    }) {
+                    Text(
+                        chat.title,
+                        color = Color.White,
+                        fontFamily = miSans,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    val (inlineTextContent, annotatedString) = chat.lastMessage?.content.textDescription(
+                        users,
+                        13.sp
+                    )
+                    Text(
+                        text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString { append(chat.chatAction?.action.toString()) },
+                        color = Color.White,
+                        fontFamily = miSans,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.alpha(.8f),
+                        inlineContent = inlineTextContent
+                    )
+                }
+                if (chat.unreadCount > 0) {
+                    Box(
+                        modifier = Modifier
+                            .height(textHeight * 0.5f)
+                            .requiredSizeIn(minWidth = textHeight * 0.5f)
+                            .background(if (chat.isMuted) Color.Gray else NeoBlue, CircleShape)
+                    ) {
+
                         Text(
-                            "@" + users[userId]?.usernames?.editableUsername.toString(),
-                            color = NeoBlue,
+                            chat.unreadCount.toString(),
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(top = 2.dp, end = 2.5.dp, bottom = 2.dp, start = 3.dp),
+                            color = if (chat.isMuted) CardGray else Color.White,
                             fontFamily = miSans,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.alpha(.8f)
-                        )
-                    } else {
-                        val chatId = (chat.lastMessage?.senderId as MessageSenderChat).chatId
-                        Text(
-                            chats[chatId]?.title.toString(),
-                            color = Color.White,
-                            fontFamily = miSans,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.alpha(.8f)
+                            fontSize = 9.sp,
                         )
                     }
-                }*/
-
-                Text(
-                    chat.lastMessage?.content.textDescription,
-                    color = Color.White,
-                    fontFamily = miSans,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.alpha(.8f)
-                )
+                }
             }
         }
     }

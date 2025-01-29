@@ -12,9 +12,11 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.ui.screen.auth.AuthScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
+import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.OptionValueBoolean
 
@@ -44,6 +46,10 @@ class MainActivity : ComponentActivity() {
                 }
                 composable<ChatListScreen> {
                     ChatListScreen(navController)
+                }
+                composable<MessagesScreen> {
+                    val (chatId, title) = it.toRoute<MessagesScreen>()
+                    MessagesScreen(navController, chatId, title)
                 }
             }
         }
