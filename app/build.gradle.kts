@@ -72,4 +72,5 @@ dependencies {
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.commons.lang3)
     implementation(libs.dotlottie.android)
+    implementation(libs.androidx.media3.exoplayer)
 }

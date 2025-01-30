@@ -9,6 +9,7 @@ object MessageRepository {
     private val subscribers = mutableSetOf<Long>()
 
     suspend fun TdApi.Object.messageHandler() {
+        LogUtils.info("UPDATE", "$this")
         when(this) {
             is TdApi.UpdateNewMessage -> {
                 if(subscribers.contains(message.chatId)) {
@@ -20,12 +21,16 @@ object MessageRepository {
                     updates.send(this)
                 }
             }
+            is TdApi.UpdateMessageInteractionInfo -> {
+                if(subscribers.contains(chatId)) {
+                    updates.send(this)
+                }
+            }
             is TdApi.UpdateDeleteMessages -> {
                 if(subscribers.contains(chatId)) {
                     updates.send(this)
                 }
             }
-
         }
     }
 

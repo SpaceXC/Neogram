@@ -73,6 +73,7 @@ val StatusBarsTopPadding: PaddingValues
 @Composable
 fun TitleFrame(
     title: String,
+    timeText: String = "",
     actionImage: ImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
     isLoading: Boolean = false,
     fullScreenLoading: Boolean = true,
@@ -85,7 +86,7 @@ fun TitleFrame(
         mutableStateOf(0.dp)
     }
     val timeSource = DefaultTimeSource("HH:mm")
-    val timeText = timeSource.currentTime
+    //val timeText = timeSource.currentTime
     val connectionState by ConnectionStateRepository.connectionState.collectAsState()
     Box(
         modifier = Modifier
@@ -93,13 +94,22 @@ fun TitleFrame(
             .background(Color.Black)
             .padding(StatusBarsTopPadding)
     ) {
-        Crossfade(targetState = isLoading, modifier = Modifier.fillMaxSize(), label = "") { loading ->
+        Crossfade(
+            targetState = isLoading,
+            modifier = Modifier.fillMaxSize(),
+            label = ""
+        ) { loading ->
             if (loading) {
                 val infiniteTransition = rememberInfiniteTransition(label = "")
                 val rotation by infiniteTransition.animateFloat(
                     initialValue = 0f,
                     targetValue = 360f,
-                    animationSpec = infiniteRepeatable(animation = tween(1000, easing = LinearEasing)), label = ""
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            1000,
+                            easing = LinearEasing
+                        )
+                    ), label = ""
                 )
                 Box(modifier = Modifier.fillMaxSize()) {
                     Image(
@@ -159,15 +169,17 @@ fun TitleFrame(
                     .clickAlpha { onActionClicked() }
             )
             Spacer(modifier = Modifier.weight(1f))
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.clickAlpha { onTitleClicked() }) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.clickAlpha { onTitleClicked() }) {
                 Text(
-                    text = timeText,
+                    text = if (timeText.isEmpty()) timeSource.currentTime else timeText,
                     color = Color.White,
                     fontFamily = miSans,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = when(connectionState) {
+                    text = when (connectionState) {
                         ConnectionState.WaitingForNetwork -> "无网络"
                         ConnectionState.Connecting -> "连接中"
                         ConnectionState.Updating -> "更新中"

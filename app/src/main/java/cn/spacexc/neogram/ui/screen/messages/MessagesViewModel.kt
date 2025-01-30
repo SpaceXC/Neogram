@@ -10,6 +10,7 @@ import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.message.MessageRepository
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.deepCopy
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class MessagesViewModel(private val chatId: Long) : ViewModel() {
@@ -23,6 +24,7 @@ class MessagesViewModel(private val chatId: Long) : ViewModel() {
         viewModelScope.launch {
             while (true) {
                 val update = MessageRepository.updates.receive()
+                LogUtils.info("updateMessage", "$update")
                 when(update) {
                     is TdApi.UpdateNewMessage -> {
                         messages = mapOf(update.message.id to update.message) + messages
@@ -41,6 +43,15 @@ class MessagesViewModel(private val chatId: Long) : ViewModel() {
                         val newMessage = temp[update.messageId]?.deepCopy()
                         if(newMessage != null) {
                             newMessage.content = update.newContent
+                            temp[update.messageId] = newMessage
+                            messages = temp
+                        }
+                    }
+                    is TdApi.UpdateMessageInteractionInfo -> {
+                        val temp = messages.toMutableMap()
+                        val newMessage = temp[update.messageId]?.deepCopy()
+                        if(newMessage != null) {
+                            newMessage.interactionInfo = update.interactionInfo
                             temp[update.messageId] = newMessage
                             messages = temp
                         }

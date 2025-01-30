@@ -10,24 +10,21 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -35,11 +32,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,22 +46,16 @@ import cn.spacexc.neogram.ui.component.TgAnimation
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.component.TgRichText
 import cn.spacexc.neogram.ui.component.TgSticker
-import cn.spacexc.neogram.ui.theme.CardGray
+import cn.spacexc.neogram.ui.component.TgVideo
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.neogram.utils.LogUtils
-import cn.spacexc.neogram.utils.processTextEntities
+import cn.spacexc.neogram.utils.formatTimestamp
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
-import org.drinkless.tdlib.TdApi.ChatActionCancel
-import org.drinkless.tdlib.TdApi.TextEntityType
-import org.drinkless.tdlib.TdApi.TextEntityTypeMention
-import org.drinkless.tdlib.TdApi.UserStatusOnline
 
 @Serializable
 data class MessagesScreen(val chatId: Long, val title: String)
@@ -78,6 +66,9 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
     val lazyState = rememberLazyListState()
     var textHeight by remember { mutableStateOf(0.dp) }
     val scope = rememberCoroutineScope()
+    val users by UserRepository.users.collectAsState(emptyMap())
+    val chats by ChatListRepository.chats.collectAsState()
+    val chatActions by ChatListRepository.chatActions.collectAsState()
     var prevFirstMessageId = remember { 0L }
     LaunchedEffect(viewModel.messages) {
         if (viewModel.messages.isNotEmpty()) {
@@ -92,6 +83,66 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
         }
     }
     val localDensity = LocalDensity.current
+    val currentChat = chats[chatId]
+    val action = chatActions[chatId]
+    val lastReadMessage = currentChat?.lastReadOutboxMessageId
+
+    val chatState = if (action != null && action.action !is TdApi.ChatActionCancel) {
+        /**
+         * ChatActionTyping.CONSTRUCTOR,
+         * ChatActionRecordingVideo.CONSTRUCTOR,
+         * ChatActionUploadingVideo.CONSTRUCTOR,
+         * ChatActionRecordingVoiceNote.CONSTRUCTOR,
+         * ChatActionUploadingVoiceNote.CONSTRUCTOR,
+         * ChatActionUploadingPhoto.CONSTRUCTOR,
+         * ChatActionUploadingDocument.CONSTRUCTOR,
+         * ChatActionChoosingSticker.CONSTRUCTOR,
+         * ChatActionChoosingLocation.CONSTRUCTOR,
+         * ChatActionChoosingContact.CONSTRUCTOR,
+         * ChatActionStartPlayingGame.CONSTRUCTOR,
+         * ChatActionRecordingVideoNote.CONSTRUCTOR,
+         * ChatActionUploadingVideoNote.CONSTRUCTOR,
+         * ChatActionWatchingAnimations.CONSTRUCTOR,
+         */
+        when(action.action) {
+            is TdApi.ChatActionTyping -> "Typing..."
+            is TdApi.ChatActionRecordingVideo -> "Recording a video..."
+            is TdApi.ChatActionUploadingVideo -> "Uploading a video..."
+            is TdApi.ChatActionRecordingVoiceNote -> "Recording a voice note..."
+            is TdApi.ChatActionUploadingVoiceNote -> "Uploading a voice note..."
+            is TdApi.ChatActionUploadingPhoto -> "Uploading a photo..."
+            is TdApi.ChatActionUploadingDocument -> "Uploading a document..."
+            is TdApi.ChatActionChoosingSticker -> "Choosing a sticker..."
+            is TdApi.ChatActionChoosingLocation -> "Choosing a location..."
+            is TdApi.ChatActionRecordingVideoNote -> "Recording a video..."
+            is TdApi.ChatActionUploadingVideoNote -> "Uploading a video"
+            else -> ""
+        }
+    } else {
+        if (currentChat?.type is TdApi.ChatTypePrivate) {
+            val userId = (currentChat.type as TdApi.ChatTypePrivate).userId
+            val currentUser = users[userId]
+            val status = currentUser?.status
+            /**
+             * UserStatusEmpty.CONSTRUCTOR,
+             * UserStatusOnline.CONSTRUCTOR,
+             * UserStatusOffline.CONSTRUCTOR,
+             * UserStatusRecently.CONSTRUCTOR,
+             * UserStatusLastWeek.CONSTRUCTOR,
+             * UserStatusLastMonth.CONSTRUCTOR
+             */
+            when(status) {
+                is TdApi.UserStatusOnline -> "Online"
+                is TdApi.UserStatusOffline -> "Last seen ${formatTimestamp(status.wasOnline.toLong())}"
+                is TdApi.UserStatusRecently -> "Last seen recently"
+                is TdApi.UserStatusLastWeek -> "Last seen last week"
+                is TdApi.UserStatusLastMonth -> "Last seen last month"
+                else -> ""
+            }
+        }
+        else ""
+    }
+
     Text(
         "", //Placeholder for calculating text height
         color = Color.Transparent,
@@ -104,7 +155,8 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
             textHeight = with(localDensity) { it.height.toDp() }
         }
     )
-    TitleFrame(title, onTitleClicked = {}, onActionClicked = navController::navigateUp) {
+    TitleFrame(title, timeText = chatState, onTitleClicked = {}, onActionClicked = navController::navigateUp
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp),
@@ -112,9 +164,6 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
             state = lazyState
         ) {
             viewModel.messages.entries.toList().forEachIndexed { index, (messageId, message) ->
-                item {
-
-                }
                 item(key = messageId) {
                     val shouldDisplayFull = if (index == viewModel.messages.entries.size - 1) {
                         true
@@ -133,11 +182,14 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                         viewModel.viewMessage(messageId)
                     }
                     MessageCard(
+                        users.map { Pair(it.key, it.value.tgUser) }.toMap(),
+                        chats,
                         modifier = Modifier.animateItem(),
                         message,
                         textHeight,
                         shouldDisplayFull,
-                        viewModel.messages
+                        viewModel.messages,
+                        messageId <= (lastReadMessage ?: (messageId + 1))
                     )
                 }
                 item {
@@ -152,15 +204,15 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
 
 @Composable
 fun MessageCard(
+    users: Map<Long, TdApi.User>,
+    chats: Map<Long, TdApi.Chat>,
     modifier: Modifier = Modifier,
     message: TdApi.Message,
     textHeight: Dp,
     shouldDisplayFull: Boolean,
-    messages: Map<Long, TdApi.Message>
+    messages: Map<Long, TdApi.Message>,
+    isRead: Boolean,
 ) {
-    val users by UserRepository.users.map { it.map { Pair(it.key, it.value.tgUser) } }
-        .map { it.toMap() }.collectAsState(emptyMap())
-    val chats by ChatListRepository.chats.collectAsState()
     val colors by AccentColorRepository.colors.collectAsState()
     var photoThumbnail: ByteArray? by remember { mutableStateOf(null) }
     var photoFile: TdApi.File? by remember { mutableStateOf(null) }
@@ -229,19 +281,22 @@ fun MessageCard(
             }
         }
         Spacer(Modifier.width(4.dp))
-        Column {
-            if (shouldDisplayFull) {
-                Text(
-                    name,
-                    color = nameColor,
-                    fontFamily = miSans,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f)) {
+                if (shouldDisplayFull) {
+                    Text(
+                        name,
+                        color = nameColor,
+                        fontFamily = miSans,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                MessageContent(message.content, message.replyTo, users, messages)
             }
-            MessageContent(message.content, message.replyTo, users, messages)
+            Text(isRead.toString(), color = Color.White)
         }
     }
 
@@ -338,7 +393,7 @@ fun MessageContent(
 
     replyTo?.let { reply ->
         if (reply is TdApi.MessageReplyToMessage) {
-            if(reply.content == null) {
+            if (reply.content == null) {
                 messages[reply.messageId]?.let { message ->
                     Text(
                         message.content.textDescription(users, 12.sp).second,
@@ -348,8 +403,7 @@ fun MessageContent(
                         fontFamily = miSans
                     )
                 }
-            }
-            else {
+            } else {
                 Text(
                     reply.content.textDescription(users, 12.sp).second,
                     color = Color.White,
@@ -417,6 +471,17 @@ fun MessageContent(
                         .aspectRatio(aspectRatio)
                 )
             }
+        }
+
+        is TdApi.MessageVideo -> {
+            val aspectRatio =
+                content.video.width.toFloat() / content.video.height.toFloat()
+            TgVideo(
+                content.video.video, modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .aspectRatio(aspectRatio)
+            )
+            TgRichText(content.caption.entities.toList(), content.caption.text)
         }
 
         else -> {
