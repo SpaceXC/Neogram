@@ -19,4 +19,17 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--keep class *
+# Please add these rules to your existing keep rules in order to suppress warnings.
+# This is generated automatically by the Android Gradle plugin.
+-dontwarn java.awt.Component
+-dontwarn java.awt.GraphicsEnvironment
+-dontwarn java.awt.HeadlessException
+-dontwarn java.awt.Window
+-dontwarn java.lang.reflect.AnnotatedType
+
+-keep class org.drinkless.tdlib.TdApi { *; }
+-keepclassmembers class org.drinkless.tdlib.TdApi { *; }
+-keep class org.drinkless.tdlib.TdApi$* { *; }
+-keep class org.drinkless.tdlib.Client
+-keepclassmembers class org.drinkless.tdlib.Client { *; }
+-keep class org.drinkless.tdlib.Client$* { *; }

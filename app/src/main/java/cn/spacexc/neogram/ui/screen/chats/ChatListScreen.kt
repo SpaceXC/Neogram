@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.buildAnnotatedString
@@ -54,6 +55,7 @@ import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.theme.CardGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
@@ -173,10 +175,12 @@ fun ChatListItem(
                             .clip(CircleShape)
                     )
                 } else {
+                    val accentColor = chat.accentColor
+                    val brush = if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(listOf(accentColor.first, accentColor.second))
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(NeoBlue, CircleShape)
+                            .background(brush, CircleShape)
                     ) {
                         Text(
                             chat.title.first().uppercase(),
@@ -228,17 +232,37 @@ fun ChatListItem(
                         users,
                         13.sp
                     )
-                    Text(
-                        text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString { append(chat.chatAction?.action.toString()) },
-                        color = Color.White,
-                        fontFamily = miSans,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.alpha(.8f),
-                        inlineContent = inlineTextContent
-                    )
+                    if (chat.draftMessage != null) {
+                        val draftContent = when(chat.draftMessage.inputMessageText) {
+                            is TdApi.InputMessageText -> (chat.draftMessage.inputMessageText as TdApi.InputMessageText).text.text
+                            is TdApi.InputMessageVoiceNote -> "语音 ${(chat.draftMessage.inputMessageText as TdApi.InputMessageVoiceNote).duration}\""
+                            is TdApi.InputMessageVideoNote -> "视频 ${(chat.draftMessage.inputMessageText as TdApi.InputMessageVideoNote).duration}\""
+                            else -> ""
+                        }
+                        Text(
+                            text = "草稿: $draftContent",
+                            color = NeoRed,
+                            fontFamily = miSans,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.alpha(.8f)
+                        )
+                    }
+                    else {
+                        Text(
+                            text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString { append(chat.chatAction?.action.toString()) },
+                            color = Color.White,
+                            fontFamily = miSans,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.alpha(.8f),
+                            inlineContent = inlineTextContent
+                        )
+                    }
                 }
                 if (chat.unreadCount > 0) {
                     Box(

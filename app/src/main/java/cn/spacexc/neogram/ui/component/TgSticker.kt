@@ -33,30 +33,35 @@ import java.util.zip.GZIPInputStream
 @Composable
 fun TgSticker(sticker: TdApi.Sticker, modifier: Modifier) {
     /**
-        StickerFormatWebp.CONSTRUCTOR,
-        StickerFormatTgs.CONSTRUCTOR,
-        StickerFormatWebm.CONSTRUCTOR
+    StickerFormatWebp.CONSTRUCTOR,
+    StickerFormatTgs.CONSTRUCTOR,
+    StickerFormatWebm.CONSTRUCTOR
      */
     when (sticker.format) {
         is TdApi.StickerFormatWebp -> {
             TgImage(sticker.sticker, null, modifier)
         }
+
         is TdApi.StickerFormatWebm -> {
             TgVideo(sticker.sticker, modifier)
         }
+
         is TdApi.StickerFormatTgs -> {
             var json by remember { mutableStateOf("") }
             LaunchedEffect(Unit) {
-                TdClient.send(TdApi.DownloadFile(sticker.sticker.id, 1, 0, 0, true), {
-                    if(it is TdApi.File) {
-                        json = decompressGzipAndSaveAsJson(it.local.path)?.readText() ?: ""
-                    }
-                })
+                if (sticker.sticker.local.path.isNotEmpty()) {
+                    json = decompressGzipAndSaveAsJson(sticker.sticker.local.path)?.readText() ?: ""
+                } else {
+                    TdClient.send(TdApi.DownloadFile(sticker.sticker.id, 1, 0, 0, true), {
+                        if (it is TdApi.File) {
+                            json = decompressGzipAndSaveAsJson(it.local.path)?.readText() ?: ""
+                        }
+                    })
+                }
             }
-            if(json.isEmpty()) {
+            if (json.isEmpty()) {
                 Box(modifier = modifier.shimmerPlaceHolder(true))
-            }
-            else {
+            } else {
                 DotLottieAnimation(
                     source = DotLottieSource.Json(json),
                     autoplay = true,
@@ -81,6 +86,8 @@ fun decompressGzipAndSaveAsJson(gzipFilePath: String): File? {
     // Construct the output file path with .json extension
     val jsonFilePath = gzipFilePath.replaceAfterLast(".", "json")
     val jsonFile = File(jsonFilePath)
+
+    if (jsonFile.exists()) return jsonFile
 
     return try {
         // Decompress the GZIP file and write to the .json file

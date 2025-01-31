@@ -1,7 +1,9 @@
 package cn.spacexc.neogram.data.chat
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import cn.spacexc.neogram.data.TdClient
+import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.deepCopy
 import kotlinx.coroutines.CoroutineScope
@@ -44,7 +46,15 @@ object ChatListRepository {
                     userStatus = null,
                     unreadCount = chat.unreadCount,
                     isMuted = chat.notificationSettings.muteFor != 0,
-                    chatAction = null
+                    chatAction = null,
+                    accentColor = {
+                        val accentColor = AccentColorRepository.getAccentColor(chat.accentColorId)
+                        if (accentColor != null)
+                            Pair(accentColor.backgroundColor, accentColor.background2Color)
+                        else
+                            null
+                    }(),
+                    draftMessage = chat.draftMessage
                 )
             }
     }
@@ -276,6 +286,10 @@ object ChatListRepository {
                 }
             }
             //endregion
+
+            is TdApi.UpdateSecretChat -> {
+                this.secretChat.isOutbound
+            }
         }
     }
 
@@ -340,7 +354,9 @@ object ChatListRepository {
         var userStatus: UserStatus?,
         var unreadCount: Int,
         var isMuted: Boolean,
-        var chatAction: ChatAction?
+        var chatAction: ChatAction?,
+        var accentColor: Pair<Color, Color>?,
+        val draftMessage: TdApi.DraftMessage?
     )
 
     data class ChatAction(

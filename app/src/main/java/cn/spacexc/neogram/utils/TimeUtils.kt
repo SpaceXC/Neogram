@@ -1,5 +1,6 @@
 package cn.spacexc.neogram.utils
 
+import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,7 +16,7 @@ fun formatTimestamp(timestamp: Long): String {
 
     return when {
         // 判断是否在半小时以内
-        minutesAgo < 1 -> "刚刚"
+        minutesAgo < 1 -> "刚才"
         minutesAgo < 30 -> "$minutesAgo 分钟之前"
 
         // 判断是否是今天
@@ -60,4 +61,11 @@ fun isWithinOneWeek(calendar: Calendar, now: Calendar): Boolean {
     val oneWeekAgo = Calendar.getInstance()
     oneWeekAgo.add(Calendar.WEEK_OF_YEAR, -1)
     return calendar.after(oneWeekAgo) && calendar.before(now)
+}
+
+@SuppressLint("SimpleDateFormat")
+fun Long.toDateStr(pattern: String = "yyyy-MM-dd HH:mm:ss"): String {
+    val date = Date(this)
+    val format = SimpleDateFormat(pattern)
+    return format.format(date)
 }

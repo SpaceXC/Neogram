@@ -3,16 +3,25 @@ package cn.spacexc.neogram.ui.component
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.processTextEntities
 import org.drinkless.tdlib.TdApi
+import org.drinkless.tdlib.TdApi.TextEntityTypeBold
+import org.drinkless.tdlib.TdApi.TextEntityTypeItalic
+import org.drinkless.tdlib.TdApi.TextEntityTypeUnderline
 
 @Composable
-fun TgRichText(entities: List<TdApi.TextEntity>, text: String) {
+fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifier = Modifier) {
     val inlineTextContent = mutableMapOf<String, InlineTextContent>()
     val annotatedString = buildAnnotatedString {
         /**
@@ -48,9 +57,30 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String) {
                 null -> {
                     append(node.text)
                 }
-
+                is TextEntityTypeBold -> {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(node.text)
+                    }
+                }
+                is TextEntityTypeItalic -> {
+                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                        append(node.text)
+                    }
+                }
+                is TextEntityTypeUnderline -> {
+                    withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                        append(node.text)
+                    }
+                }
+                is TdApi.TextEntityTypeStrikethrough -> {
+                    withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) {
+                        append(node.text)
+                    }
+                }
                 else -> {
-                    append(node.text)
+                    withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = NeoBlue)) {
+                        append(node.text)
+                    }
                 }
             }
         }
@@ -61,6 +91,7 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String) {
         fontFamily = miSans,
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal,
-        inlineContent = inlineTextContent
+        inlineContent = inlineTextContent,
+        modifier = modifier
     )
 }

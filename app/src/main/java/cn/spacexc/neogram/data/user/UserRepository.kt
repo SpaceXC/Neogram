@@ -20,6 +20,7 @@ import org.drinkless.tdlib.TdApi.UserStatus
 
 object UserRepository {
     val users = MutableStateFlow(mapOf<Long, NeoUser>())
+    val currentUserId = MutableStateFlow(0L)
     val mutex = Mutex()
 
     fun TdApi.Object.userHandler() {
@@ -39,6 +40,12 @@ object UserRepository {
                     val newUser = user.copy(tgUser = tgUser, status = status)
                     temp[userId] = newUser
                     users.value = temp
+                }
+            }
+
+            is TdApi.UpdateOption -> {
+                if (this.name == "my_id") {
+                    currentUserId.value = (value as TdApi.OptionValueInteger).value
                 }
             }
 

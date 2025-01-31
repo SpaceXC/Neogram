@@ -144,6 +144,12 @@ fun TdApi.MessageContent?.textDescription(
             }
         }
 
+        is TdApi.MessageVoiceNote -> buildAnnotatedString {
+            withStyle(spanStyle) {
+                append("语音 ${this@textDescription.voiceNote.duration}\"")
+            }
+        }
+
         else -> buildAnnotatedString {
             withStyle(spanStyle) {
                 append(this@textDescription?.toString())

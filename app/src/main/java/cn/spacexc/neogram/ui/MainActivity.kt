@@ -9,6 +9,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +19,9 @@ import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.ui.screen.auth.AuthScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
+import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.OptionValueBoolean
 
@@ -26,6 +31,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
+
+            val systemUiController: SystemUiController = rememberSystemUiController()
+            LaunchedEffect(Unit) {
+                systemUiController.isStatusBarVisible = false // Status bar
+                systemUiController.isNavigationBarVisible = false // Navigation bar
+                systemUiController.isSystemBarsVisible = false // Status & Navigation bars
+            }
+
             NavHost(navController,
                 startDestination = AuthScreen,
                 enterTransition = {
@@ -50,6 +63,9 @@ class MainActivity : ComponentActivity() {
                 composable<MessagesScreen> {
                     val (chatId, title) = it.toRoute<MessagesScreen>()
                     MessagesScreen(navController, chatId, title)
+                }
+                composable<SendMessageScreen> {
+                    SendMessageScreen(it.toRoute<SendMessageScreen>(), navController)
                 }
             }
         }

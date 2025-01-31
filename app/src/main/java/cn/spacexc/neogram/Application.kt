@@ -62,7 +62,7 @@ class Application : Application() {
         ) {
             capitalize(model)
         } else {
-            capitalize(manufacturer) + " " + model
+            capitalize(manufacturer) + model
         }
     }
     private fun capitalize(s: String?): String {
