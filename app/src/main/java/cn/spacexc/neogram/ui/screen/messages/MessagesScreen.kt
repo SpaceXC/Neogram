@@ -513,7 +513,9 @@ fun ChatBubble(
 
 @Composable
 fun ReplyContent(
-    reply: TdApi.MessageReplyTo, messages: Map<Long, TdApi.Message>, users: Map<Long, TdApi.User>
+    reply: TdApi.MessageReplyTo,
+    messages: Map<Long, TdApi.Message>,
+    users: Map<Long, TdApi.User>
 ) {
     val localDensity = LocalDensity.current
     var textHeight by remember { mutableStateOf(0.dp) }

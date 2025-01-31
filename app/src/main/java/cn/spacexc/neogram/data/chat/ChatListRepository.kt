@@ -288,7 +288,10 @@ object ChatListRepository {
             //endregion
 
             is TdApi.UpdateSecretChat -> {
-                this.secretChat.isOutbound
+                LogUtils.info("SecretChat", "I got an secret chat")
+                TdClient.send(
+                    TdApi.CreateSecretChat(secretChat.id),
+                    { LogUtils.info("SecretChat", it.toString()) })
             }
         }
     }

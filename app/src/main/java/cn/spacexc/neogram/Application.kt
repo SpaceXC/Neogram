@@ -24,7 +24,7 @@ class Application : Application() {
         tdLibParams = TdLibParams(
             databaseDirectory = File(filesDir, "tgDb").absolutePath,
             useMessageDatabase = true,
-            useSecretChats = false,
+            useSecretChats = true,
             useFileDatabase = true,
             systemLanguageCode = Locale.getDefault().language,
             deviceModel = getDeviceName(),

@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +45,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -132,9 +138,11 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
             chatList.forEach { chat ->
                 item(key = chat.id) {
                     ChatListItem(
-                        modifier = Modifier.animateItem().clickVfx {
-                            navController.navigate(MessagesScreen(chat.id, chat.title))
-                        },
+                        modifier = Modifier
+                            .animateItem()
+                            .clickVfx {
+                                navController.navigate(MessagesScreen(chat.id, chat.title))
+                            },
                         chat = chat,
                         users = users.map { Pair(it.key, it.value.tgUser) }.toMap()
                     )
@@ -176,7 +184,10 @@ fun ChatListItem(
                     )
                 } else {
                     val accentColor = chat.accentColor
-                    val brush = if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(listOf(accentColor.first, accentColor.second))
+                    val brush =
+                        if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                            listOf(accentColor.first, accentColor.second)
+                        )
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -218,22 +229,43 @@ fun ChatListItem(
                     .weight(1f)
                     .onSizeChanged {
                         textHeight = with(localDensity) { it.height.toDp() }
-                    }) {
+                    }
+                ) {
                     Text(
-                        chat.title,
+                        buildAnnotatedString {
+                            if (chat.type is TdApi.ChatTypeSecret) {
+                                appendInlineContent("lock")
+                            }
+                            append(chat.title)
+                        },
                         color = Color.White,
                         fontFamily = miSans,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        inlineContent = mapOf(
+                            "lock" to InlineTextContent(
+                                placeholder = Placeholder(
+                                    15.sp, 15.sp,
+                                    PlaceholderVerticalAlign.Center
+                                )
+                            ) {
+                                Icon(
+                                    painterResource(cn.spacexc.neogram.R.drawable.icon_lock),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        )
                     )
                     val (inlineTextContent, annotatedString) = chat.lastMessage?.content.textDescription(
                         users,
                         13.sp
                     )
                     if (chat.draftMessage != null) {
-                        val draftContent = when(chat.draftMessage.inputMessageText) {
+                        val draftContent = when (chat.draftMessage.inputMessageText) {
                             is TdApi.InputMessageText -> (chat.draftMessage.inputMessageText as TdApi.InputMessageText).text.text
                             is TdApi.InputMessageVoiceNote -> "语音 ${(chat.draftMessage.inputMessageText as TdApi.InputMessageVoiceNote).duration}\""
                             is TdApi.InputMessageVideoNote -> "视频 ${(chat.draftMessage.inputMessageText as TdApi.InputMessageVideoNote).duration}\""
@@ -249,10 +281,26 @@ fun ChatListItem(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.alpha(.8f)
                         )
-                    }
-                    else {
+                    } else {
                         Text(
-                            text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString { append(chat.chatAction?.action.toString()) },
+                            text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString {
+                                append(
+                                    when (chat.chatAction!!.action) {
+                                        is TdApi.ChatActionTyping -> "正输入"
+                                        is TdApi.ChatActionRecordingVideo -> "正录制视频"
+                                        is TdApi.ChatActionUploadingVideo -> "正上传视频"
+                                        is TdApi.ChatActionRecordingVoiceNote -> "正录制语音"
+                                        is TdApi.ChatActionUploadingVoiceNote -> "正上传语音"
+                                        is TdApi.ChatActionUploadingPhoto -> "正上传照片"
+                                        is TdApi.ChatActionUploadingDocument -> "正上传文件"
+                                        is TdApi.ChatActionChoosingSticker -> "正挑选贴纸"
+                                        is TdApi.ChatActionChoosingLocation -> "正选择定位"
+                                        is TdApi.ChatActionRecordingVideoNote -> "正录制视频"
+                                        is TdApi.ChatActionUploadingVideoNote -> "正上传视频"
+                                        else -> ""
+                                    }
+                                )
+                            },
                             color = Color.White,
                             fontFamily = miSans,
                             fontSize = 13.sp,
