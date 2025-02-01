@@ -79,4 +79,5 @@ dependencies {
     implementation(libs.dotlottie.android)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.zoomable)
 }

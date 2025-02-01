@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,6 +21,7 @@ import androidx.navigation.toRoute
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.ui.screen.auth.AuthScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
+import cn.spacexc.neogram.ui.screen.image.ImageViewerScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -26,6 +30,7 @@ import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.OptionValueBoolean
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -39,33 +44,47 @@ class MainActivity : ComponentActivity() {
                 systemUiController.isSystemBarsVisible = false // Status & Navigation bars
             }
 
-            NavHost(navController,
-                startDestination = AuthScreen,
-                enterTransition = {
-                    slideInHorizontally(tween(400, 0)) { it } + fadeIn(tween(400))
-                },
-                exitTransition = {
-                    slideOutHorizontally(tween(400, 150)) { -it } + fadeOut(tween(400))
-                },
-                popEnterTransition = {
-                    slideInHorizontally(tween(400, 50)) { -it } + fadeIn(tween(400))
-                },
-                popExitTransition = {
-                    slideOutHorizontally(tween(300, 0)) { it } + fadeOut(tween(300))
-                }
-            ) {
-                composable<AuthScreen> {
-                    AuthScreen(navController)
-                }
-                composable<ChatListScreen> {
-                    ChatListScreen(navController)
-                }
-                composable<MessagesScreen> {
-                    val (chatId, title) = it.toRoute<MessagesScreen>()
-                    MessagesScreen(navController, chatId, title)
-                }
-                composable<SendMessageScreen> {
-                    SendMessageScreen(it.toRoute<SendMessageScreen>(), navController)
+            SharedTransitionLayout {
+                NavHost(navController,
+                    startDestination = AuthScreen,
+                    enterTransition = {
+                        slideInHorizontally(tween(400, 0)) { it } + fadeIn(tween(400))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(tween(400, 150)) { -it } + fadeOut(tween(400))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(tween(400, 50)) { -it } + fadeIn(tween(400))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(tween(300, 0)) { it } + fadeOut(tween(300))
+                    }
+                ) {
+                    composable<AuthScreen> {
+                        AuthScreen(navController)
+                    }
+                    composable<ChatListScreen> {
+                        ChatListScreen(this, navController)
+                    }
+                    composable<MessagesScreen> {
+                        val (chatId, title) = it.toRoute<MessagesScreen>()
+                        MessagesScreen(
+                            navController = navController,
+                            chatId = chatId,
+                            title = title,
+                            animatedContentScope = this
+                        )
+                    }
+                    composable<SendMessageScreen> {
+                        SendMessageScreen(it.toRoute<SendMessageScreen>(), navController)
+                    }
+                    composable<ImageViewerScreen> {
+                        ImageViewerScreen(
+                            this,
+                            navController,
+                            it.toRoute<ImageViewerScreen>().imagePath
+                        )
+                    }
                 }
             }
         }

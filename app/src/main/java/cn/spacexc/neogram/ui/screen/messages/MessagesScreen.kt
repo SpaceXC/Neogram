@@ -1,106 +1,143 @@
 package cn.spacexc.neogram.ui.screen.messages
 
+import android.content.ClipData
+import android.content.ClipDescription
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.automirrored.rounded.Reply
+import androidx.compose.material.icons.outlined.MicNone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterEnd
+import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragAndDropTransferData
+import androidx.compose.ui.draganddrop.mimeTypes
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
-import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.data.user.UserRepository
-import cn.spacexc.neogram.ui.component.TgAnimation
-import cn.spacexc.neogram.ui.component.TgImage
-import cn.spacexc.neogram.ui.component.TgRichText
-import cn.spacexc.neogram.ui.component.TgSticker
-import cn.spacexc.neogram.ui.component.TgVideo
-import cn.spacexc.neogram.ui.component.TgVoiceNote
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
-import cn.spacexc.neogram.ui.theme.BadgeGray
-import cn.spacexc.neogram.ui.theme.BubbleGray
+import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
 import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
+import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.formatTimestamp
 import cn.spacexc.neogram.utils.textDescription
-import cn.spacexc.neogram.utils.toDateStr
-import cn.spacexc.neogram.utils.username
 import cn.spacexc.telegram.ui.component.clickAlpha
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 @Serializable
 data class MessagesScreen(val chatId: Long, val title: String)
 
+enum class MessageSwipeToReplyState { Resting, Replying }
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
-    val viewModel = viewModel { MessagesViewModel(chatId) }
-    val lazyState = rememberLazyListState()
-    var textHeight by remember { mutableStateOf(0.dp) }
+fun SharedTransitionScope.MessagesScreen(
+    animatedContentScope: AnimatedContentScope,
+    navController: NavController,
+    chatId: Long,
+    title: String
+) {
+    //region variables
     var inputBarHeight by remember { mutableStateOf(0.dp) }
     val scope = rememberCoroutineScope()
     val users by UserRepository.users.collectAsState(emptyMap())
     val chats by ChatListRepository.chats.collectAsState()
     val chatActions by ChatListRepository.chatActions.collectAsState()
     val currentUserId by UserRepository.currentUserId.collectAsState()
-    var prevFirstMessageId = remember { 0L }
-    LaunchedEffect(viewModel.messages) {
-        if (viewModel.messages.isNotEmpty()) {
-            if (viewModel.messages.entries.first().key != prevFirstMessageId) {
-                prevFirstMessageId = viewModel.messages.entries.first().key
-                if (lazyState.firstVisibleItemIndex <= 1) {
-                    scope.launch {
-                        lazyState.animateScrollToItem(0)
-                    }
-                }
-            }
-        }
-    }
     val localDensity = LocalDensity.current
     val currentChat = chats[chatId]
     val action = chatActions[chatId]
-    val lastReadMessage = currentChat?.lastReadOutboxMessageId
+    val lastReadOutboxMessage = currentChat?.lastReadOutboxMessageId
+    val viewModel = viewModel { MessagesViewModel(chatId) }
+
+
+    LaunchedEffect(viewModel.messages) {
+        if (viewModel.messages.isNotEmpty()) {
+            if (viewModel.messages.entries.first().key != viewModel.prevFirstMessageId) {
+                val message = viewModel.messages.entries.first().value
+                viewModel.prevFirstMessageId = message.id
+                val messageSenderIsMe =
+                    message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
+                if (viewModel.lazyColumnState.firstVisibleItemIndex <= 1 || messageSenderIsMe) {
+                    scope.launch {
+                        viewModel.lazyColumnState.animateScrollToItem(0)
+                    }
+                }
+            }
+            viewModel.prevFirstMessageId = viewModel.messages.entries.first().key
+        }
+    }
 
     val chatState = if (action != null && action.action !is TdApi.ChatActionCancel) {
         /**
@@ -165,18 +202,6 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
         } else ""
     }
 
-    /*Text("", //Placeholder for calculating text height
-        color = Color.Transparent,
-        fontFamily = miSans,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.onSizeChanged {
-            textHeight = with(localDensity) { it.height.toDp() }
-        }
-    )*/
-
     val inputValue = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getStateFlow(
@@ -191,6 +216,7 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
         onActionClicked = navController::navigateUp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            //region message list
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
@@ -200,10 +226,11 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                     end = 8.dp
                 ),
                 reverseLayout = true,
-                state = lazyState
+                state = viewModel.lazyColumnState
             ) {
                 viewModel.messages.entries.toList().forEachIndexed { index, (messageId, message) ->
                     item(key = messageId) {
+                        //region val isNextOneContinuous
                         val isNextOneContinuous =
                             if (index == 0) false   //上一条消息是连续的吗？i.e. 是同一个人发的且相隔时间不超过5分钟吗？
                             else {
@@ -219,6 +246,8 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                                     }
                                 }
                             }
+                        //endregion
+                        //region val isPreviousOneContinuous
                         val isPreviousOneContinuous =   //同上
                             if (index == viewModel.messages.entries.size - 1) false
                             else {
@@ -234,22 +263,40 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                                     }
                                 }
                             }
+                        //endregion
                         LaunchedEffect(Unit) {
                             viewModel.viewMessage(messageId)
                         }
-                        MessageCard(
-                            currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
-                            users.map { Pair(it.key, it.value.tgUser) }.toMap(),
-                            chats,
-                            modifier = Modifier.animateItem(),
-                            message,
-                            isPreviousOneContinuous,
-                            isNextOneContinuous,
-                            viewModel.messages,
-                            messageId <= (lastReadMessage ?: (messageId + 1)),
+
+                        val senderIsMe =
                             message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
-                        )
+
+                        MessageCard(
+                            animatedContentScope = animatedContentScope,
+                            isGroupChat = currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
+                            users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
+                            chats = chats,
+                            modifier = Modifier.animateItem(),
+                            message = message,
+                            isPreviousOneContinuous = isPreviousOneContinuous,
+                            isNextOneContinuous = isNextOneContinuous,
+                            messages = viewModel.messages,
+                            isRead = messageId <= (lastReadOutboxMessage ?: (messageId + 1)),
+                            senderIsMe = senderIsMe,
+                            navController = navController
+                        ) { senderName, replyContent ->
+                            navController.navigate(
+                                SendMessageScreen(
+                                    chatId,
+                                    inputValue?.value ?: "",
+                                    messageId,
+                                    senderName,
+                                    replyContent
+                                )
+                            )
+                        }
                     }
+
                     item {
                         LaunchedEffect(Unit) {
                             viewModel.getMessages()
@@ -257,6 +304,60 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                     }
                 }
             }
+            //endregion
+            //region voice recording indicator
+            var isRecordingAudio by remember { mutableStateOf(false) }
+            AnimatedVisibility(
+                isRecordingAudio,
+                modifier = Modifier.fillMaxSize(),
+                enter = fadeIn() + slideInVertically { it / 2 },
+                exit = fadeOut() + slideOutVertically { it / 2 }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .dragAndDropTarget(
+                            shouldStartDragAndDrop = { event ->
+                                event
+                                    .mimeTypes()
+                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                            },
+                            target = remember {
+                                object : DragAndDropTarget {
+                                    override fun onDrop(event: DragAndDropEvent): Boolean {
+                                        isRecordingAudio = false
+                                        LogUtils.info("AudioRecord", "Ended")
+                                        return true
+                                    }
+                                }
+                            }
+                        )
+                ) {
+                    Box(modifier = Modifier
+                        .size(100.dp)
+                        .background(Color.Red)
+                        .align(Alignment.Center)
+                        .dragAndDropTarget(
+                            shouldStartDragAndDrop = { event ->
+                                event
+                                    .mimeTypes()
+                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                            },
+                            target = remember {
+                                object : DragAndDropTarget {
+                                    override fun onDrop(event: DragAndDropEvent): Boolean {
+                                        isRecordingAudio = false
+                                        LogUtils.info("AudioRecord", "Canceled")
+                                        return true
+                                    }
+                                }
+                            }
+                        ))
+                }
+            }
+            //endregion
+            //region input bar
             Row(
                 modifier = Modifier
                     .padding(8.dp)
@@ -270,6 +371,51 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                 var barHeight by remember { mutableStateOf(0.dp) }
                 Box(
                     modifier = Modifier
+                        .dragAndDropTarget(
+                            shouldStartDragAndDrop = { event ->
+                                event
+                                    .mimeTypes()
+                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                            },
+                            target = remember {
+                                object : DragAndDropTarget {
+                                    override fun onDrop(event: DragAndDropEvent): Boolean {
+                                        return true
+                                    }
+
+                                    override fun onEnded(event: DragAndDropEvent) {
+                                        super.onEnded(event)
+                                        isRecordingAudio = false
+                                        LogUtils.info("AudioRecord", "Ended")
+                                    }
+                                }
+                            }
+                        )
+                        .dragAndDropSource(drawDragDecoration = {
+
+                        }) {
+                            detectTapGestures(
+                                onPress = { offset ->
+                                    scope.launch {
+                                        startTransfer(
+                                            transferData = DragAndDropTransferData(
+                                                clipData = ClipData.newPlainText(
+                                                    "text",
+                                                    "Drag me!"
+                                                )
+                                            )
+                                        )
+                                    }
+                                    isRecordingAudio = true
+                                    try {
+                                        awaitRelease()
+                                        //isRecordingAudio = false
+                                    } finally {
+                                        //isRecordingAudio = false
+                                    }
+                                }
+                            )
+                        }
                         .onSizeChanged { barHeight = with(localDensity) { it.height.toDp() } }
                         .weight(1f)
                         .aspectRatio(1f)
@@ -277,7 +423,7 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                         .padding(8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Add,
+                        imageVector = Icons.Outlined.MicNone,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.fillMaxSize()
@@ -285,6 +431,15 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                 }
                 Box(
                     modifier = Modifier
+                        .clickAlpha {
+                            navController.navigate(
+                                SendMessageScreen(
+                                    chatId,
+                                    inputValue?.value ?: "",
+                                    0
+                                )
+                            )
+                        }
                         .weight(3.5f)
                         .height(barHeight)
                         .background(InputBarGray, CircleShape)
@@ -292,15 +447,6 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                 ) {
                     Row(
                         modifier = Modifier
-                            .clickAlpha {
-                                navController.navigate(
-                                    SendMessageScreen(
-                                        chatId,
-                                        inputValue?.value ?: "",
-                                        0
-                                    )
-                                )
-                            }
                             .alpha(if (inputValue?.value.isNullOrEmpty()) 0.6f else 1f)
                             .align(Alignment.CenterStart),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -322,468 +468,7 @@ fun MessagesScreen(navController: NavController, chatId: Long, title: String) {
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun MessageCard(
-    isGroupChat: Boolean,
-    users: Map<Long, TdApi.User>,
-    chats: Map<Long, TdApi.Chat>,
-    modifier: Modifier = Modifier,
-    message: TdApi.Message,
-    isPreviousOneContinuous: Boolean,
-    isNextOneContinuous: Boolean,
-    messages: Map<Long, TdApi.Message>,
-    isRead: Boolean,
-    senderIsMe: Boolean
-) {
-    var photoThumbnail: ByteArray? by remember { mutableStateOf(null) }
-    var photoFile: TdApi.File? by remember { mutableStateOf(null) }
-    var name by remember { mutableStateOf("") }
-    var nameColor by remember { mutableStateOf(Color.White) }
-    if (message.senderId is TdApi.MessageSenderChat) {
-        val chatId = (message.senderId as TdApi.MessageSenderChat).chatId
-        chats[chatId]?.let { chat ->
-            name = chat.title
-            photoThumbnail = chat.photo?.minithumbnail?.data
-            photoFile = chat.photo?.small
-            nameColor =
-                AccentColorRepository.getAccentColor(chat.accentColorId)?.nameColor ?: Color.White
-        }
-    }
-    if (message.senderId is TdApi.MessageSenderUser) {
-        val userId = (message.senderId as TdApi.MessageSenderUser).userId
-        users[userId]?.let { user ->
-            name = user.username
-            photoThumbnail = user.profilePhoto?.minithumbnail?.data
-            photoFile = user.profilePhoto?.small
-            nameColor =
-                AccentColorRepository.getAccentColor(user.accentColorId)?.nameColor ?: Color.White
-        }
-    }
-
-    Spacer(Modifier.height(if (isNextOneContinuous) 1.dp else 8.dp))
-
-    Column(horizontalAlignment = if (senderIsMe) Alignment.End else Alignment.Start) {
-        if (isGroupChat && !isPreviousOneContinuous/* && message.content !is TdApi.MessageText*/) {
-            Text(
-                name,
-                color = nameColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = miSans
-            )
-        }
-
-        val shouldMessageDisplayedInABox = message.content is TdApi.MessageText ||
-                message.content is TdApi.MessageVoiceNote ||
-                (message.content is TdApi.MessagePhoto && (message.content as TdApi.MessagePhoto).caption.text.isNotEmpty()) ||
-                (message.content is TdApi.MessageVideo && (message.content as TdApi.MessageVideo).caption.text.isNotEmpty())
-
-        if (!shouldMessageDisplayedInABox) {
-            message.forwardInfo?.let {
-                MessageForwardInfo(it, chats, users)
-            }
-        }
-
-        if (message.content !is TdApi.MessageText) {
-            message.replyTo?.let { reply ->
-                ReplyContent(reply, messages, users)
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = if (senderIsMe) Arrangement.End else Arrangement.Start
-        ) {
-            if (shouldMessageDisplayedInABox) {
-                ChatBubble(modifier, senderIsMe, isPreviousOneContinuous, isNextOneContinuous) {
-                    Column(
-                        horizontalAlignment = if (senderIsMe) Alignment.End else Alignment.Start,
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        message.forwardInfo?.let {
-                            MessageForwardInfo(it, chats, users)
-                        }
-                        message.replyTo?.let { reply ->
-                            ReplyContent(reply, messages, users)
-                        }
-                        MessageContent(message.content, users)
-                        Row(
-                            modifier = Modifier
-                                .alpha(0.7f)
-                                .padding(top = 2.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                (message.date * 1000L).toDateStr("hh:mm a"),
-                                color = Color.White,
-                                fontSize = 10.sp,
-                                fontFamily = miSans
-                            )
-                            if (senderIsMe) {
-                                Text(
-                                    if (isRead) "已读" else "未读",
-                                    color = Color.White,
-                                    fontSize = 10.sp,
-                                    fontFamily = miSans
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                Box {
-                    MessageContent(message.content, users)
-
-                    Box(
-                        modifier = Modifier
-                            .padding(bottom = 3.dp, start = 3.dp)
-                            .align(Alignment.BottomStart)
-                            .background(BadgeGray, CircleShape)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.alpha(0.49f)
-                        ) {
-                            Text(
-                                (message.date * 1000L).toDateStr("hh:mm a"),
-                                color = Color.White,
-                                fontSize = 10.sp,
-                                fontFamily = miSans,
-                                modifier = Modifier
-                            )
-                            if (senderIsMe) {
-                                Text(
-                                    if (isRead) "已读" else "未读",
-                                    color = Color.White,
-                                    fontSize = 10.sp,
-                                    fontFamily = miSans
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        //Text("Previous $isPreviousOneContinuous", color = Color.White)
-    }
-}
-
-@Composable
-fun ChatBubble(
-    modifier: Modifier = Modifier,
-    senderIsMe: Boolean,
-    isPreviousOneContinuous: Boolean,
-    isNextOneContinuous: Boolean,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier.then(
-            if (senderIsMe) {
-                Modifier
-                    .padding(start = 4.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 15.dp,
-                            topEnd = if (isPreviousOneContinuous) 3.dp else 15.dp,
-                            bottomStart = 15.dp,
-                            bottomEnd = if (isNextOneContinuous) 3.dp else 15.dp
-                        )
-                    )
-                    .background(NeoBlue)
-            } else {
-                Modifier
-                    .padding(end = 4.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = if (isPreviousOneContinuous) 3.dp else 15.dp,
-                            topEnd = 15.dp,
-                            bottomStart = if (isNextOneContinuous) 3.dp else 15.dp,
-                            bottomEnd = 15.dp
-                        )
-                    )
-                    .background(BubbleGray)
-            }
-        )
-    ) { content() }
-}
-
-@Composable
-fun ReplyContent(
-    reply: TdApi.MessageReplyTo,
-    messages: Map<Long, TdApi.Message>,
-    users: Map<Long, TdApi.User>
-) {
-    val localDensity = LocalDensity.current
-    var textHeight by remember { mutableStateOf(0.dp) }
-    Row(
-        modifier = Modifier
-            .alpha(0.7f),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(end = 2.dp)
-                .width(1.5.dp)
-                .height(textHeight - 1.dp)
-                .background(Color.White)
-        )
-        if (reply is TdApi.MessageReplyToMessage) {
-            if (reply.content == null) {
-                messages[reply.messageId]?.let { message ->
-                    Text(
-                        message.content.textDescription(users, 12.sp).second,
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        modifier = Modifier.onSizeChanged {
-                            textHeight = with(localDensity) { it.height.toDp() }
-                        },
-                        fontFamily = miSans
-                    )
-                }
-            } else {
-                Text(
-                    reply.content.textDescription(users, 12.sp).second,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    modifier = Modifier.onSizeChanged {
-                        textHeight = with(localDensity) { it.height.toDp() }
-                    },
-                    fontFamily = miSans
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MessageForwardInfo(
-    forwardInfo: TdApi.MessageForwardInfo,
-    chats: Map<Long, TdApi.Chat>,
-    users: Map<Long, TdApi.User>,
-    modifier: Modifier = Modifier,
-) {
-    val originName = when (forwardInfo.origin) {
-        is TdApi.MessageOriginChat -> {
-            val chatId =
-                (forwardInfo.origin as TdApi.MessageOriginChat).senderChatId
-            chats[chatId]?.title ?: ""
-        }
-
-        is TdApi.MessageOriginChannel -> {
-            val chatId = (forwardInfo.origin as TdApi.MessageOriginChannel).chatId
-            chats[chatId]?.title ?: ""
-        }
-
-        is TdApi.MessageOriginUser -> {
-            val userId =
-                (forwardInfo.origin as TdApi.MessageOriginUser).senderUserId
-            users[userId]?.username ?: ""
-        }
-
-        is TdApi.MessageOriginHiddenUser -> {
-            (forwardInfo.origin as TdApi.MessageOriginHiddenUser).senderName
-        }
-
-        else -> ""
-    }
-    Text(
-        "转发自$originName",
-        fontFamily = miSans,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        color = NeoBlue,
-        modifier = modifier
-    )
-
-}
-
-@Composable
-fun MessageContent(
-    content: TdApi.MessageContent,
-    users: Map<Long, TdApi.User>,
-) {
-    /**
-     * MessageText.CONSTRUCTOR, //WIP
-     * MessageAnimation.CONSTRUCTOR,
-     * MessageAudio.CONSTRUCTOR,
-     * MessageDocument.CONSTRUCTOR,
-     * MessagePaidMedia.CONSTRUCTOR,
-     * MessagePhoto.CONSTRUCTOR,
-     * MessageSticker.CONSTRUCTOR,
-     * MessageVideo.CONSTRUCTOR,
-     * MessageVideoNote.CONSTRUCTOR,
-     * MessageVoiceNote.CONSTRUCTOR,
-     * MessageExpiredPhoto.CONSTRUCTOR,
-     * MessageExpiredVideo.CONSTRUCTOR,
-     * MessageExpiredVideoNote.CONSTRUCTOR,
-     * MessageExpiredVoiceNote.CONSTRUCTOR,
-     * MessageLocation.CONSTRUCTOR,
-     * MessageVenue.CONSTRUCTOR,
-     * MessageContact.CONSTRUCTOR,
-     * MessageAnimatedEmoji.CONSTRUCTOR,
-     * MessageDice.CONSTRUCTOR,
-     * MessageGame.CONSTRUCTOR,
-     * MessagePoll.CONSTRUCTOR,
-     * MessageStory.CONSTRUCTOR,
-     * MessageInvoice.CONSTRUCTOR,
-     * MessageCall.CONSTRUCTOR,
-     * MessageVideoChatScheduled.CONSTRUCTOR,
-     * MessageVideoChatStarted.CONSTRUCTOR,
-     * MessageVideoChatEnded.CONSTRUCTOR,
-     * MessageInviteVideoChatParticipants.CONSTRUCTOR,
-     * MessageBasicGroupChatCreate.CONSTRUCTOR,
-     * MessageSupergroupChatCreate.CONSTRUCTOR,
-     * MessageChatChangeTitle.CONSTRUCTOR,
-     * MessageChatChangePhoto.CONSTRUCTOR,
-     * MessageChatDeletePhoto.CONSTRUCTOR,
-     * MessageChatAddMembers.CONSTRUCTOR,
-     * MessageChatJoinByLink.CONSTRUCTOR,
-     * MessageChatJoinByRequest.CONSTRUCTOR,
-     * MessageChatDeleteMember.CONSTRUCTOR,
-     * MessageChatUpgradeTo.CONSTRUCTOR,
-     * MessageChatUpgradeFrom.CONSTRUCTOR,
-     * MessagePinMessage.CONSTRUCTOR,
-     * MessageScreenshotTaken.CONSTRUCTOR,
-     * MessageChatSetBackground.CONSTRUCTOR,
-     * MessageChatSetTheme.CONSTRUCTOR,
-     * MessageChatSetMessageAutoDeleteTime.CONSTRUCTOR,
-     * MessageChatBoost.CONSTRUCTOR,
-     * MessageForumTopicCreated.CONSTRUCTOR,
-     * MessageForumTopicEdited.CONSTRUCTOR,
-     * MessageForumTopicIsClosedToggled.CONSTRUCTOR,
-     * MessageForumTopicIsHiddenToggled.CONSTRUCTOR,
-     * MessageSuggestProfilePhoto.CONSTRUCTOR,
-     * MessageCustomServiceAction.CONSTRUCTOR,
-     * MessageGameScore.CONSTRUCTOR,
-     * MessagePaymentSuccessful.CONSTRUCTOR,
-     * MessagePaymentSuccessfulBot.CONSTRUCTOR,
-     * MessagePaymentRefunded.CONSTRUCTOR,
-     * MessageGiftedPremium.CONSTRUCTOR,
-     * MessagePremiumGiftCode.CONSTRUCTOR,
-     * MessageGiveawayCreated.CONSTRUCTOR,
-     * MessageGiveaway.CONSTRUCTOR,
-     * MessageGiveawayCompleted.CONSTRUCTOR,
-     * MessageGiveawayWinners.CONSTRUCTOR,
-     * MessageGiftedStars.CONSTRUCTOR,
-     * MessageGiveawayPrizeStars.CONSTRUCTOR,
-     * MessageGift.CONSTRUCTOR,
-     * MessageUpgradedGift.CONSTRUCTOR,
-     * MessageRefundedUpgradedGift.CONSTRUCTOR,
-     * MessageContactRegistered.CONSTRUCTOR,
-     * MessageUsersShared.CONSTRUCTOR,
-     * MessageChatShared.CONSTRUCTOR,
-     * MessageBotWriteAccessAllowed.CONSTRUCTOR,
-     * MessageWebAppDataSent.CONSTRUCTOR,
-     * MessageWebAppDataReceived.CONSTRUCTOR,
-     * MessagePassportDataSent.CONSTRUCTOR,
-     * MessagePassportDataReceived.CONSTRUCTOR,
-     * MessageProximityAlertTriggered.CONSTRUCTOR,
-     * MessageUnsupported.CONSTRUCTOR
-     */
-    when (content) {
-        is TdApi.MessageText -> {
-            TgRichText(
-                content.text.entities.toList(),
-                content.text.text
-            )
-        }
-
-        is TdApi.MessagePhoto -> {
-            val thumbnail = content.photo.minithumbnail?.data
-            val file = content.photo.sizes.last().photo
-            //TODO caption & secret photo
-            val aspectRatio =
-                content.photo.sizes.last().width.toFloat() / content.photo.sizes.last().height.toFloat()
-            TgImage(
-                file, thumbnail, modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .aspectRatio(aspectRatio)
-            )
-            if (content.caption.text.isNotEmpty()) {
-                TgRichText(
-                    content.caption.entities.toList(),
-                    content.caption.text,
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp)
-                        .padding(top = 4.dp)
-                )
-            }
-        }
-
-        is TdApi.MessageSticker -> {
-            val aspectRatio = content.sticker.width.toFloat() / content.sticker.height.toFloat()
-            TgSticker(
-                sticker = content.sticker,
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .aspectRatio(aspectRatio)
-            )
-        }
-
-        is TdApi.MessageAnimation -> {
-            val aspectRatio = content.animation.width.toFloat() / content.animation.height.toFloat()
-            TgAnimation(
-                content.animation, modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .aspectRatio(aspectRatio)
-            )
-        }
-
-        is TdApi.MessageAnimatedEmoji -> {
-            val aspectRatio =
-                content.animatedEmoji.stickerWidth.toFloat() / content.animatedEmoji.stickerHeight.toFloat()
-            content.animatedEmoji.sticker?.let {
-                TgSticker(
-                    it, modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .aspectRatio(aspectRatio)
-                )
-            }
-        }
-
-        is TdApi.MessageVideo -> {
-            val aspectRatio = content.video.width.toFloat() / content.video.height.toFloat()
-            TgVideo(
-                content.video.video, modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .aspectRatio(aspectRatio)
-            )
-            if (content.caption.text.isNotEmpty()) {
-                TgRichText(
-                    content.caption.entities.toList(),
-                    content.caption.text,
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp)
-                        .padding(top = 4.dp)
-                )
-            }
-        }
-
-        is TdApi.MessageVoiceNote -> {
-            TgVoiceNote(content.voiceNote.voice, modifier = Modifier)
-            if (content.caption.text.isNotEmpty()) {
-                TgRichText(
-                    content.caption.entities.toList(),
-                    content.caption.text,
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp)
-                        .padding(top = 4.dp)
-                )
-            }
-        }
-
-        else -> {
-            Text(
-                "Unsupported message type ${content.javaClass.name} but here is an description: ${
-                    content.textDescription(
-                        users, 14.sp
-                    )
-                }", color = NeoBlue, modifier = Modifier.padding(horizontal = 8.dp)
-            )
+            //endregion
         }
     }
 }

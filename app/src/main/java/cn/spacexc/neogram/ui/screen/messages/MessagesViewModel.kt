@@ -1,9 +1,11 @@
 package cn.spacexc.neogram.ui.screen.messages
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import org.drinkless.tdlib.TdApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cn.spacexc.neogram.data.TdClient
@@ -17,6 +19,9 @@ class MessagesViewModel(private val chatId: Long) : ViewModel() {
     var messages by mutableStateOf(mapOf<Long, TdApi.Message>())
     private var lastMessageId = 0L
 
+    val lazyColumnState = LazyListState()
+    var prevFirstMessageId = 0L //用于检测是否有新消息，如果有的话看情况将列表滑到开始
+
     init {
         getMessages()
         TdClient.send(TdApi.OpenChat(chatId))
@@ -25,10 +30,11 @@ class MessagesViewModel(private val chatId: Long) : ViewModel() {
             while (true) {
                 val update = MessageRepository.updates.receive()
                 LogUtils.info("updateMessage", "$update")
-                when(update) {
+                when (update) {
                     is TdApi.UpdateNewMessage -> {
                         messages = mapOf(update.message.id to update.message) + messages
                     }
+
                     is TdApi.UpdateDeleteMessages -> {
                         val temp = messages.toMutableMap()
                         if (update.isPermanent) {
@@ -38,19 +44,21 @@ class MessagesViewModel(private val chatId: Long) : ViewModel() {
                             messages = temp
                         }
                     }
+
                     is TdApi.UpdateMessageContent -> {
                         val temp = messages.toMutableMap()
                         val newMessage = temp[update.messageId]?.deepCopy()
-                        if(newMessage != null) {
+                        if (newMessage != null) {
                             newMessage.content = update.newContent
                             temp[update.messageId] = newMessage
                             messages = temp
                         }
                     }
+
                     is TdApi.UpdateMessageInteractionInfo -> {
                         val temp = messages.toMutableMap()
                         val newMessage = temp[update.messageId]?.deepCopy()
-                        if(newMessage != null) {
+                        if (newMessage != null) {
                             newMessage.interactionInfo = update.interactionInfo
                             temp[update.messageId] = newMessage
                             messages = temp

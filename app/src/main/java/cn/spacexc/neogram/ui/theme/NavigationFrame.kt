@@ -75,6 +75,7 @@ fun TitleFrame(
     title: String,
     timeText: String = "",
     actionImage: ImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+    actionImageModifier: Modifier = Modifier,
     isLoading: Boolean = false,
     fullScreenLoading: Boolean = true,
     onActionClicked: () -> Unit,
@@ -167,6 +168,7 @@ fun TitleFrame(
                     )
                     .padding(2.dp)
                     .clickAlpha { onActionClicked() }
+                    .then(actionImageModifier)
             )
             Spacer(modifier = Modifier.weight(1f))
             Column(

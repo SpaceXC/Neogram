@@ -1,5 +1,8 @@
 package cn.spacexc.neogram.ui.screen.chats
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +25,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -79,41 +85,9 @@ import org.drinkless.tdlib.TdApi.UserStatusOnline
 @Serializable
 object ChatListScreen
 
-fun <T> updateStateListWithDiff(
-    stateList: SnapshotStateList<T>,
-    newList: List<T>,
-    areItemsTheSame: (T, T) -> Boolean,
-    areContentsTheSame: (T, T) -> Boolean = { old, new -> old == new }
-) {
-    Snapshot.apply {
-        val currentSize = stateList.size - 1
-        val newSize = newList.size - 1
-
-        // 如果当前列表比新列表长，移除多余的元素
-        if (currentSize > newSize) {
-            stateList.removeRange(newSize, currentSize)
-        }
-        // 遍历新的列表，更新现有的元素或添加新元素
-        for (i in 0..newSize) {
-            if (i < currentSize) {
-                // 如果元素是相同的，但内容不同，更新内容
-                if (!areItemsTheSame(stateList[i], newList[i]) || !areContentsTheSame(
-                        stateList[i],
-                        newList[i]
-                    )
-                ) {
-                    stateList[i] = newList[i]
-                }
-            } else {
-                // 如果新列表比当前列表长，添加多出来的元素
-                stateList.add(newList[i])
-            }
-        }
-    }
-}
-
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = viewModel()) {
+fun SharedTransitionScope.ChatListScreen(animatedContentScope: AnimatedContentScope, navController: NavController, viewModel: ChatListViewModel = viewModel()) {
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val chatList by viewModel.chatList.collectAsState(emptyList())
@@ -121,7 +95,7 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
     LaunchedEffect(Unit) {
         ChatListRepository.getMainChatList()
     }
-    TitleFrame("Neo", onActionClicked = navController::navigateUp, onTitleClicked = {
+    TitleFrame("Neo", actionImage = Icons.Rounded.Menu, actionImageModifier = Modifier.scale(scaleX = 0.8f, scaleY = 1f), onActionClicked = navController::navigateUp, onTitleClicked = {
         scope.launch { scrollState.animateScrollToItem(0) }
     }) { topPadding ->
         LazyColumn(
@@ -144,7 +118,8 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
                                 navController.navigate(MessagesScreen(chat.id, chat.title))
                             },
                         chat = chat,
-                        users = users.map { Pair(it.key, it.value.tgUser) }.toMap()
+                        users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
+                        animatedContentScope = animatedContentScope,
                     )
                 }
             }
@@ -152,11 +127,13 @@ fun ChatListScreen(navController: NavController, viewModel: ChatListViewModel = 
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun ChatListItem(
+fun SharedTransitionScope.ChatListItem(
     modifier: Modifier = Modifier,
     chat: ChatListRepository.ChatItem,
-    users: Map<Long, User>
+    users: Map<Long, User>,
+    animatedContentScope: AnimatedContentScope
 ) {
     val localDensity = LocalDensity.current
     Box(
@@ -176,11 +153,13 @@ fun ChatListItem(
             ) {
                 if (thumbnailBytes != null) {
                     TgImage(
+                        animatedContentScope,
                         chat.photo.small, //都有缩略图了岂不是包有图的
                         thumbnailBytes,
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(CircleShape)
+                            .clip(CircleShape),
+                        navController = null
                     )
                 } else {
                     val accentColor = chat.accentColor

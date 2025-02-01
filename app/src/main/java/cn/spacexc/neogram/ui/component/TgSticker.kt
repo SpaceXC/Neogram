@@ -4,6 +4,9 @@ import android.media.MediaPlayer
 import android.view.SurfaceView
 import android.view.TextureView
 import android.widget.VideoView
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
@@ -20,6 +23,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
 import com.dotlottie.dlplayer.Mode
@@ -30,8 +34,14 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.GZIPInputStream
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun TgSticker(sticker: TdApi.Sticker, modifier: Modifier) {
+fun SharedTransitionScope.TgSticker(
+    animatedContentScope: AnimatedContentScope,
+    sticker: TdApi.Sticker,
+    modifier: Modifier,
+    navController: NavController
+) {
     /**
     StickerFormatWebp.CONSTRUCTOR,
     StickerFormatTgs.CONSTRUCTOR,
@@ -39,7 +49,7 @@ fun TgSticker(sticker: TdApi.Sticker, modifier: Modifier) {
      */
     when (sticker.format) {
         is TdApi.StickerFormatWebp -> {
-            TgImage(sticker.sticker, null, modifier)
+            TgImage(animatedContentScope, sticker.sticker, null, modifier, navController)
         }
 
         is TdApi.StickerFormatWebm -> {

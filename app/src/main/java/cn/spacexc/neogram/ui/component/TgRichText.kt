@@ -77,6 +77,11 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifie
                         append(node.text)
                     }
                 }
+                is TdApi.TextEntityTypeSpoiler -> {
+                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.5f))) {
+                        append(node.text)
+                    }
+                }
                 else -> {
                     withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = NeoBlue)) {
                         append(node.text)
