@@ -1,7 +1,11 @@
 package cn.spacexc.neogram.ui.screen.messages
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipDescription
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -22,6 +26,7 @@ import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +47,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.outlined.MicNone
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +77,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -119,8 +126,30 @@ fun SharedTransitionScope.MessagesScreen(
     val currentChat = chats[chatId]
     val action = chatActions[chatId]
     val lastReadOutboxMessage = currentChat?.lastReadOutboxMessageId
-    val viewModel = viewModel { MessagesViewModel(chatId) }
+    var lastReadInboxMessage = remember { currentChat?.lastReadInboxMessageId ?: 0L }
+    var scrolledToLastReadInboxMessage by remember { mutableStateOf(false) }
+    val viewModel = viewModel { MessagesViewModel(chatId, lastReadInboxMessage) }
+    val microphonePermissionRequester = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            viewModel.recordAudio()
+        }
+    }
+    var isRecordingAudio by remember { mutableStateOf(false) }
 
+    LaunchedEffect(isRecordingAudio) {
+        if (isRecordingAudio) {
+            microphonePermissionRequester.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    LaunchedEffect(currentChat?.lastReadInboxMessageId) {
+        if (lastReadInboxMessage == 0L && currentChat?.lastReadInboxMessageId != null)
+            lastReadInboxMessage = currentChat.lastReadInboxMessageId
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.getMessages(scope)
+    }
 
     LaunchedEffect(viewModel.messages) {
         if (viewModel.messages.isNotEmpty()) {
@@ -271,6 +300,15 @@ fun SharedTransitionScope.MessagesScreen(
                         val senderIsMe =
                             message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
 
+                        if (messageId == lastReadInboxMessage && index != 0) {
+                            /*Text(
+                                "上次看到",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                color = Color.White,
+                                fontFamily = miSans
+                            )*/
+                        }
                         MessageCard(
                             animatedContentScope = animatedContentScope,
                             isGroupChat = currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
@@ -299,14 +337,13 @@ fun SharedTransitionScope.MessagesScreen(
 
                     item {
                         LaunchedEffect(Unit) {
-                            viewModel.getMessages()
+                            viewModel.getMessages(scope)
                         }
                     }
                 }
             }
             //endregion
             //region voice recording indicator
-            var isRecordingAudio by remember { mutableStateOf(false) }
             AnimatedVisibility(
                 isRecordingAudio,
                 modifier = Modifier.fillMaxSize(),
@@ -327,6 +364,7 @@ fun SharedTransitionScope.MessagesScreen(
                                 object : DragAndDropTarget {
                                     override fun onDrop(event: DragAndDropEvent): Boolean {
                                         isRecordingAudio = false
+                                        viewModel.stopRecording(true)
                                         LogUtils.info("AudioRecord", "Ended")
                                         return true
                                     }
@@ -348,6 +386,7 @@ fun SharedTransitionScope.MessagesScreen(
                                 object : DragAndDropTarget {
                                     override fun onDrop(event: DragAndDropEvent): Boolean {
                                         isRecordingAudio = false
+                                        viewModel.stopRecording(false)
                                         LogUtils.info("AudioRecord", "Canceled")
                                         return true
                                     }
@@ -386,6 +425,7 @@ fun SharedTransitionScope.MessagesScreen(
                                     override fun onEnded(event: DragAndDropEvent) {
                                         super.onEnded(event)
                                         isRecordingAudio = false
+                                        viewModel.stopRecording(true)
                                         LogUtils.info("AudioRecord", "Ended")
                                     }
                                 }
@@ -469,6 +509,24 @@ fun SharedTransitionScope.MessagesScreen(
                 }
             }
             //endregion
+            /*if (viewModel.loadCompleted && !scrolledToLastReadInboxMessage && lastReadInboxMessage != viewModel.messages.keys.toList()
+                    .first()
+            ) {
+                Button(
+                    {
+                        scrolledToLastReadInboxMessage = true
+                        val index = viewModel.messages.keys.toList().indexOf(lastReadInboxMessage)
+                        scope.launch {
+                            viewModel.lazyColumnState.animateScrollToItem(index)
+                            //viewModel.lazyColumnState.animateScrollBy(with(localDensity) { it.toPx() })
+                        }
+                    }, modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(inputBarHeight)
+                ) {
+                    Text("从上次开始")
+                }
+            }*/
         }
     }
 }
