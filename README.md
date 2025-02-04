@@ -1,3 +1,2 @@
 # Neogram
-
-Neogram是一款在Android手表上运行的Telegram第三方客户端
+Telegram第三方客户端，但是手表版
