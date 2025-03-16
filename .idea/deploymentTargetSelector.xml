@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-02T08:10:04.833908Z">
+        <DropdownSelection timestamp="2025-03-16T04:01:45.508050Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Xiaochang/.android/avd/Oppo_Watch_4_But_FAKE_API_33.avd" />

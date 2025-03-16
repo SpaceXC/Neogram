@@ -35,6 +35,7 @@ class Application : Application() {
             apiHash = apiHash
         )
         TdClient.send(TdApi.SetLogVerbosityLevel(1))
+        TdClient.send(TdApi.SetOption("notification_group_count_max", TdApi.OptionValueInteger(10)))
     }
 
     companion object {

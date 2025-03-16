@@ -4,9 +4,11 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -14,7 +16,12 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
+import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.theme.NeoBlue
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Size
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.MessageAnimatedEmoji
 import org.drinkless.tdlib.TdApi.MessageAnimation
@@ -68,19 +75,28 @@ fun TdApi.MessageContent?.textDescription(
                     //appendInlineContent("photoThumbnail")
                     //这个有点太糊了吧
                 }
-                append("照片")
+                append("照片 ")
             }
+            append(caption.text)
             if (thumbnail != null) {
                 inlineTextContent["photoThumbnail"] = InlineTextContent(placeholder) {
-                    val thumbnailBitmap =
+                    /*val thumbnailBitmap =
                         BitmapFactory.decodeByteArray(thumbnail, 0, thumbnail.size)
                             .asImageBitmap()
-                    Image(
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(thumbnail)
+                            .size(Size.ORIGINAL)
+                            .crossfade(true)
+                            .build(), contentDescription = null, contentScale = ContentScale.Crop
+                    )*/
+                    /*Image(
                         thumbnailBitmap,
                         null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
+                        contentScale = ContentScale.Crop
+
+                    )*/
                 }
             }
         }

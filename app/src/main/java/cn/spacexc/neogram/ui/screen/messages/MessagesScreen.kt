@@ -85,6 +85,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
+import cn.spacexc.neogram.ui.icons.ChatBubble
+import cn.spacexc.neogram.ui.icons.Microphone
+import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
 import cn.spacexc.neogram.ui.theme.InputBarGray
@@ -92,10 +95,12 @@ import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.formatTimestamp
+import cn.spacexc.neogram.utils.getChatActionDescription
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.telegram.ui.component.clickAlpha
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
@@ -168,68 +173,7 @@ fun SharedTransitionScope.MessagesScreen(
         }
     }
 
-    val chatState = if (action != null && action.action !is TdApi.ChatActionCancel) {
-        /**
-         * ChatActionTyping.CONSTRUCTOR,
-         * ChatActionRecordingVideo.CONSTRUCTOR,
-         * ChatActionUploadingVideo.CONSTRUCTOR,
-         * ChatActionRecordingVoiceNote.CONSTRUCTOR,
-         * ChatActionUploadingVoiceNote.CONSTRUCTOR,
-         * ChatActionUploadingPhoto.CONSTRUCTOR,
-         * ChatActionUploadingDocument.CONSTRUCTOR,
-         * ChatActionChoosingSticker.CONSTRUCTOR,
-         * ChatActionChoosingLocation.CONSTRUCTOR,
-         * ChatActionChoosingContact.CONSTRUCTOR,
-         * ChatActionStartPlayingGame.CONSTRUCTOR,
-         * ChatActionRecordingVideoNote.CONSTRUCTOR,
-         * ChatActionUploadingVideoNote.CONSTRUCTOR,
-         * ChatActionWatchingAnimations.CONSTRUCTOR,
-         */
-        val actionSenderName = if (action.senderId is TdApi.MessageSenderUser) {
-            val actionUser = users[action.senderId.userId]
-            actionUser?.tgUser?.firstName ?: ""
-        } else {
-            val actionChat = chats[(action.senderId as TdApi.MessageSenderChat).chatId]
-            actionChat?.title
-        }
-        val actionName = when (action.action) {
-            is TdApi.ChatActionTyping -> "正输入"
-            is TdApi.ChatActionRecordingVideo -> "正录制视频"
-            is TdApi.ChatActionUploadingVideo -> "正上传视频"
-            is TdApi.ChatActionRecordingVoiceNote -> "正录制语音"
-            is TdApi.ChatActionUploadingVoiceNote -> "正上传语音"
-            is TdApi.ChatActionUploadingPhoto -> "正上传照片"
-            is TdApi.ChatActionUploadingDocument -> "正上传文件"
-            is TdApi.ChatActionChoosingSticker -> "正挑选贴纸"
-            is TdApi.ChatActionChoosingLocation -> "正选择定位"
-            is TdApi.ChatActionRecordingVideoNote -> "正录制视频"
-            is TdApi.ChatActionUploadingVideoNote -> "正上传视频"
-            else -> ""
-        }
-        if (actionSenderName.isNullOrEmpty() || currentChat?.type is TdApi.ChatTypePrivate) actionName else "$actionSenderName${actionName.lowercase()}"
-    } else {
-        if (currentChat?.type is TdApi.ChatTypePrivate) {
-            val userId = (currentChat.type as TdApi.ChatTypePrivate).userId
-            val currentUser = users[userId]
-            val status = currentUser?.status
-            /**
-             * UserStatusEmpty.CONSTRUCTOR,
-             * UserStatusOnline.CONSTRUCTOR,
-             * UserStatusOffline.CONSTRUCTOR,
-             * UserStatusRecently.CONSTRUCTOR,
-             * UserStatusLastWeek.CONSTRUCTOR,
-             * UserStatusLastMonth.CONSTRUCTOR
-             */
-            when (status) {
-                is TdApi.UserStatusOnline -> "在线"
-                is TdApi.UserStatusOffline -> "${formatTimestamp(status.wasOnline.toLong())}在线"
-                is TdApi.UserStatusRecently -> "刚才在线"
-                is TdApi.UserStatusLastWeek -> "上周曾在线"
-                is TdApi.UserStatusLastMonth -> "上个月曾在线"
-                else -> ""
-            }
-        } else ""
-    }
+    val chatState = action.getChatActionDescription(users.map { Pair(it.key, it.value.tgUser) }.toMap(), chats, currentChat?.type)
 
     val inputValue = navController.currentBackStackEntry
         ?.savedStateHandle
@@ -261,21 +205,23 @@ fun SharedTransitionScope.MessagesScreen(
                     item(key = messageId) {
                         //region val isNextOneContinuous
                         val isNextOneContinuous =
-                            if (index == 0) false   //上一条消息是连续的吗？i.e. 是同一个人发的且相隔时间不超过5分钟吗？
+                            if (index == 0) false   //上一条消息是连续的吗？i.e. 是同一个人发的且相隔时间不超过5分钟且在同一天吗吗？
                             else {
                                 val nextItem = viewModel.messages.entries.toList()[index - 1]
-                                if ((message.date - nextItem.value.date).absoluteValue > 5 * 60) false
+                                if ((message.date - nextItem.value.date).absoluteValue > 5 * 60) false  //时间超过5分钟
+
                                 else if (nextItem.value.senderId.constructor != message.senderId.constructor) {
-                                    false
+                                    false   //不是同一类(chat/user)人发的
                                 } else {
                                     if (message.senderId is TdApi.MessageSenderUser) {
-                                        (message.senderId as TdApi.MessageSenderUser).userId == (nextItem.value.senderId as TdApi.MessageSenderUser).userId
+                                        (message.senderId as TdApi.MessageSenderUser).userId == (nextItem.value.senderId as TdApi.MessageSenderUser).userId //是不是同一个人发的
                                     } else {
-                                        (message.senderId as TdApi.MessageSenderChat).chatId == (nextItem.value.senderId as TdApi.MessageSenderChat).chatId
+                                        (message.senderId as TdApi.MessageSenderChat).chatId == (nextItem.value.senderId as TdApi.MessageSenderChat).chatId //是不是同一个人发的
                                     }
                                 }
                             }
                         //endregion
+
                         //region val isPreviousOneContinuous
                         val isPreviousOneContinuous =   //同上
                             if (index == viewModel.messages.entries.size - 1) false
@@ -293,6 +239,7 @@ fun SharedTransitionScope.MessagesScreen(
                                 }
                             }
                         //endregion
+
                         LaunchedEffect(Unit) {
                             viewModel.viewMessage(messageId)
                         }
@@ -300,15 +247,15 @@ fun SharedTransitionScope.MessagesScreen(
                         val senderIsMe =
                             message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
 
-                        if (messageId == lastReadInboxMessage && index != 0) {
-                            /*Text(
+                        /*if (messageId == lastReadInboxMessage && index != 0) {
+                            *//*Text(
                                 "上次看到",
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
                                 color = Color.White,
                                 fontFamily = miSans
-                            )*/
-                        }
+                            )*//*
+                        }*/
                         MessageCard(
                             animatedContentScope = animatedContentScope,
                             isGroupChat = currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
@@ -463,7 +410,7 @@ fun SharedTransitionScope.MessagesScreen(
                         .padding(8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.MicNone,
+                        imageVector = NeogramIcons.Microphone,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.fillMaxSize()
@@ -488,12 +435,12 @@ fun SharedTransitionScope.MessagesScreen(
                     Row(
                         modifier = Modifier
                             .alpha(if (inputValue?.value.isNullOrEmpty()) 0.6f else 1f)
-                            .align(Alignment.CenterStart),
+                            .align(CenterStart),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(cn.spacexc.neogram.R.drawable.icon_new_message),
+                            imageVector = NeogramIcons.ChatBubble,
                             contentDescription = null,
                             modifier = Modifier.size(with(localDensity) { 18.sp.toDp() }),
                             tint = Color.White
@@ -502,8 +449,7 @@ fun SharedTransitionScope.MessagesScreen(
                             if (inputValue?.value.isNullOrEmpty()) "发送消息" else inputValue.value,
                             fontFamily = miSans,
                             color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
+                            fontSize = 13.sp
                         )
                     }
                 }

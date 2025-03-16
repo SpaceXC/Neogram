@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Valkyrie.Settings">
-    <option name="mode" value="Simple" />
+    <option name="generatePreview" value="true" />
+    <option name="iconPackDestination" value="$PROJECT_DIR$/app/src/main/java/cn/spacexc/neogram/ui/icons" />
+    <option name="iconPackName" value="NeogramIcons" />
+    <option name="iconPackPackage" value="cn.spacexc.neogram.ui.icons" />
+    <option name="mode" value="IconPack" />
     <option name="packageName" value="cn.spacexc.neogram.ui.icons" />
   </component>
 </project>

@@ -16,9 +16,9 @@ object AccentColorRepository {
                     Pair(
                         it.id,
                         AccentColor(
-                            Color(it.darkThemeColors[0]),
-                            Color(it.darkThemeColors[0]),
-                            Color(it.darkThemeColors[0])
+                            Color(it.darkThemeColors[0]).copy(alpha = 1f),
+                            Color(it.darkThemeColors[0]).copy(alpha = 1f),
+                            Color(it.darkThemeColors[0]).copy(alpha = 1f)
                         )
                     )
                 }.toMap()

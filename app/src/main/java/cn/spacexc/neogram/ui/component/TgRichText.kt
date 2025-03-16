@@ -11,8 +11,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.jetbrainsMono
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.processTextEntities
 import org.drinkless.tdlib.TdApi
@@ -21,7 +23,7 @@ import org.drinkless.tdlib.TdApi.TextEntityTypeItalic
 import org.drinkless.tdlib.TdApi.TextEntityTypeUnderline
 
 @Composable
-fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifier = Modifier) {
+fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifier = Modifier, fontSize: TextUnit = 14.sp) {
     val inlineTextContent = mutableMapOf<String, InlineTextContent>()
     val annotatedString = buildAnnotatedString {
         /**
@@ -82,6 +84,11 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifie
                         append(node.text)
                     }
                 }
+                is TdApi.TextEntityTypeCode -> {
+                    withStyle(SpanStyle(fontFamily = jetbrainsMono)) {
+                        append(node.text)
+                    }
+                }
                 else -> {
                     withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = NeoBlue)) {
                         append(node.text)
@@ -94,8 +101,8 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifie
         annotatedString,
         color = Color.White,
         fontFamily = miSans,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
+        fontSize = fontSize,
+        //fontWeight = FontWeight(450),
         inlineContent = inlineTextContent,
         modifier = modifier
     )

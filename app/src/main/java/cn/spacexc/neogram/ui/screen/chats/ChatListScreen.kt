@@ -54,9 +54,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -64,6 +66,9 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.component.TgImage
+import cn.spacexc.neogram.ui.icons.Lock
+import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.icons.Options
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.theme.CardGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
@@ -71,6 +76,8 @@ import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
+import cn.spacexc.neogram.utils.formatTimestamp
+import cn.spacexc.neogram.utils.getChatActionDescription
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.coroutines.launch
@@ -87,17 +94,34 @@ object ChatListScreen
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.ChatListScreen(animatedContentScope: AnimatedContentScope, navController: NavController, viewModel: ChatListViewModel = viewModel()) {
+fun SharedTransitionScope.ChatListScreen(
+    animatedContentScope: AnimatedContentScope,
+    navController: NavController,
+    viewModel: ChatListViewModel = viewModel()
+) {
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val chatList by viewModel.chatList.collectAsState(emptyList())
+    val chats by ChatListRepository.chats.collectAsState()
     val users by UserRepository.users.collectAsState()
     LaunchedEffect(Unit) {
         ChatListRepository.getMainChatList()
     }
-    TitleFrame("Neo", actionImage = Icons.Rounded.Menu, actionImageModifier = Modifier.scale(scaleX = 0.8f, scaleY = 1f), onActionClicked = navController::navigateUp, onTitleClicked = {
-        scope.launch { scrollState.animateScrollToItem(0) }
-    }) { topPadding ->
+    TitleFrame(
+        "Neo",
+        actionImage = {
+            Icon(
+                imageVector = NeogramIcons.Options,
+                tint = Color.White,
+                modifier = Modifier.fillMaxSize().padding(2.dp),
+                contentDescription = "Back"
+            )
+        },
+        actionImageModifier = Modifier.scale(scaleX = 0.8f, scaleY = 1f),
+        onActionClicked = navController::navigateUp,
+        onTitleClicked = {
+            scope.launch { scrollState.animateScrollToItem(0) }
+        }) { topPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
@@ -118,6 +142,7 @@ fun SharedTransitionScope.ChatListScreen(animatedContentScope: AnimatedContentSc
                                 navController.navigate(MessagesScreen(chat.id, chat.title))
                             },
                         chat = chat,
+                        chats = chats,
                         users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
                         animatedContentScope = animatedContentScope,
                     )
@@ -132,6 +157,7 @@ fun SharedTransitionScope.ChatListScreen(animatedContentScope: AnimatedContentSc
 fun SharedTransitionScope.ChatListItem(
     modifier: Modifier = Modifier,
     chat: ChatListRepository.ChatItem,
+    chats: Map<Long, Chat>,
     users: Map<Long, User>,
     animatedContentScope: AnimatedContentScope
 ) {
@@ -231,7 +257,7 @@ fun SharedTransitionScope.ChatListItem(
                                 )
                             ) {
                                 Icon(
-                                    painterResource(cn.spacexc.neogram.R.drawable.icon_lock),
+                                    NeogramIcons.Lock,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.fillMaxWidth()
@@ -261,24 +287,15 @@ fun SharedTransitionScope.ChatListItem(
                             modifier = Modifier.alpha(.8f)
                         )
                     } else {
+                        val chatState =
+                            chat.chatAction.getChatActionDescription(users, chats, chat.type)
                         Text(
                             text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString {
-                                append(
-                                    when (chat.chatAction!!.action) {
-                                        is TdApi.ChatActionTyping -> "正输入"
-                                        is TdApi.ChatActionRecordingVideo -> "正录制视频"
-                                        is TdApi.ChatActionUploadingVideo -> "正上传视频"
-                                        is TdApi.ChatActionRecordingVoiceNote -> "正录制语音"
-                                        is TdApi.ChatActionUploadingVoiceNote -> "正上传语音"
-                                        is TdApi.ChatActionUploadingPhoto -> "正上传照片"
-                                        is TdApi.ChatActionUploadingDocument -> "正上传文件"
-                                        is TdApi.ChatActionChoosingSticker -> "正挑选贴纸"
-                                        is TdApi.ChatActionChoosingLocation -> "正选择定位"
-                                        is TdApi.ChatActionRecordingVideoNote -> "正录制视频"
-                                        is TdApi.ChatActionUploadingVideoNote -> "正上传视频"
-                                        else -> ""
-                                    }
-                                )
+                                withStyle(
+                                    SpanStyle(color = NeoBlue, fontWeight = FontWeight.Medium)
+                                ) {
+                                    append(chatState)
+                                }
                             },
                             color = Color.White,
                             fontFamily = miSans,

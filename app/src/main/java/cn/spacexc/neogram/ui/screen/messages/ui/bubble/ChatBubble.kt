@@ -1,4 +1,4 @@
-package cn.spacexc.neogram.ui.screen.messages.ui
+package cn.spacexc.neogram.ui.screen.messages.ui.bubble
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

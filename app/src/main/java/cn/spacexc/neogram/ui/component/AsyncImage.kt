@@ -1,4 +1,4 @@
-package cn.spacexc.telegram.ui.component
+package cn.spacexc.neogram.ui.component
 
 import android.os.Build
 import androidx.compose.foundation.layout.Box
@@ -17,7 +17,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope.Companion.DefaultFilterQ
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
+import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter.Companion.DefaultTransform
@@ -40,7 +42,8 @@ fun AsyncImage(
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DefaultFilterQuality,
-    placeholderEnabled: Boolean = true
+    placeholderEnabled: Boolean = true,
+    loadOriginal: Boolean = false
 ) {
     var size by remember { mutableStateOf(Size(0f, 0f)) }
     var isLoading by remember {
@@ -57,7 +60,9 @@ fun AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(url)
                     .transformations(transformations)
-                    .crossfade(true).build(),
+                    .apply { if (loadOriginal) size(coil.size.Size.ORIGINAL) }
+                    .crossfade(true)
+                    .build(),
                 contentDescription = contentDescription,
                 modifier = Modifier.matchParentSize(),
                 transform = transform,

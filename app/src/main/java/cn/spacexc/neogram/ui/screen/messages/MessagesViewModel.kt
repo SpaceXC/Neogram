@@ -74,6 +74,18 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                             messages = temp
                         }
                     }
+
+                    is TdApi.UpdateMessageSendFailed -> {
+                        val temp = messages.toMutableMap()
+                        temp[update.oldMessageId] = update.message
+                        messages = temp
+                    }
+
+                    is TdApi.UpdateMessageSendSucceeded -> {
+                        val temp = messages.toMutableMap()
+                        temp[update.oldMessageId] = update.message
+                        messages = temp
+                    }
                 }
             }
         }

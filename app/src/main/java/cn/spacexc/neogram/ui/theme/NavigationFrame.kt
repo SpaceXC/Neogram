@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
@@ -48,21 +49,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.R
 import cn.spacexc.neogram.data.connection.ConnectionState
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository
 import cn.spacexc.telegram.ui.component.clickAlpha
-import cn.spacexc.telegram.ui.component.clickVfx
-import org.drinkless.tdlib.TdApi.ConnectionStateReady
 
 val StatusBarsTopPadding: PaddingValues
     @Composable
@@ -73,8 +73,17 @@ val StatusBarsTopPadding: PaddingValues
 @Composable
 fun TitleFrame(
     title: String,
-    timeText: String = "",
-    actionImage: ImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+    timeText: String? = null,
+    actionImage: @Composable () -> Unit = {
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(1.3f)
+        )
+    },
     actionImageModifier: Modifier = Modifier,
     isLoading: Boolean = false,
     fullScreenLoading: Boolean = true,
@@ -155,30 +164,29 @@ fun TitleFrame(
             }
             .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
-            Icon(
-                imageVector = actionImage,
-                contentDescription = null,
-                tint = Color.White,
+
+            Box(
                 modifier = Modifier
-                    .scale(1.1f)
-                    .offset(y = 2.dp, x = (-1).dp)
-                    .background(
-                        parseColor("#121212"),
-                        CircleShape
-                    )
-                    .padding(2.dp)
+                    .offset(y = 2.dp)
+                    .size(with(localDensity) { 26.sp.toDp() })
+                    .background(parseColor("#121212"), CircleShape)
+                    .padding(4.dp)
                     .clickAlpha { onActionClicked() }
-                    .then(actionImageModifier)
-            )
+                    .then(actionImageModifier),
+                contentAlignment = Alignment.Center
+            ) {
+                actionImage()
+            }
             Spacer(modifier = Modifier.weight(1f))
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.clickAlpha { onTitleClicked() }) {
                 Text(
-                    text = if (timeText.isEmpty()) timeSource.currentTime else timeText,
+                    text = if (timeText == null) timeSource.currentTime else timeText,
                     color = Color.White,
                     fontFamily = miSans,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.End
                 )
                 Text(
                     text = when (connectionState) {
@@ -192,6 +200,7 @@ fun TitleFrame(
                     color = NeoBlue,
                     fontFamily = miSans,
                     fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.End,
                     modifier = Modifier.offset(y = (-3).dp)
                 )
             }

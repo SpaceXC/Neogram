@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
@@ -40,11 +41,13 @@ fun ReplyContent(
     senderIsMe: Boolean,
     messages: Map<Long, TdApi.Message>,
     users: Map<Long, TdApi.User>,
-    chats: Map<Long, TdApi.Chat>
+    chats: Map<Long, TdApi.Chat>,
+    isMinimalist: Boolean = true
 ) {
     val localDensity = LocalDensity.current
     var textHeight by remember { mutableStateOf(0.dp) }
     var senderName by remember { mutableStateOf("") }
+    var senderColor by remember { mutableStateOf(Color.White) }
     Row(
         modifier = Modifier
             .padding(bottom = 2.dp),
@@ -55,7 +58,7 @@ fun ReplyContent(
                 .padding(end = 4.dp)
                 .width(3.dp)
                 .height(textHeight)
-                .background(Color.White.copy(alpha = 0.5f), CircleShape)
+                .background((if (isMinimalist) senderColor else Color.White).copy(alpha = 0.5f), CircleShape)
         )
         if (reply is TdApi.MessageReplyToMessage) {
             Column(modifier = Modifier.onSizeChanged {
@@ -64,17 +67,23 @@ fun ReplyContent(
                 if (reply.content == null) {
                     messages[reply.messageId]?.let { message ->
                         senderName = when (message.senderId) {
-                            is TdApi.MessageSenderUser -> users[(message.senderId as TdApi.MessageSenderUser).userId]?.username
-                                ?: ""
+                            is TdApi.MessageSenderUser -> {
+                                val user = users[(message.senderId as TdApi.MessageSenderUser).userId]
+                                senderColor = user?.accentColorId?.let { AccentColorRepository.getAccentColor(it) }?.nameColor ?: Color.White
+                                user?.username ?: ""
+                            }
 
-                            is TdApi.MessageSenderChat -> chats[(message.senderId as TdApi.MessageSenderChat).chatId]?.title
-                                ?: ""
+                            is TdApi.MessageSenderChat -> {
+                                val chat = chats[(message.senderId as TdApi.MessageSenderChat).chatId]
+                                senderColor = chat?.accentColorId?.let { AccentColorRepository.getAccentColor(it) }?.nameColor ?: Color.White
+                                chat?.title ?: ""
+                            }
 
                             else -> ""
                         }
                         Text(
                             senderName,
-                            color = if (senderIsMe) Color.White else NeoBlue,
+                            color = if (isMinimalist) senderColor else if (senderIsMe) Color.White else NeoBlue,
                             fontSize = 12.sp,
                             fontFamily = miSans,
                             maxLines = 1,
@@ -96,17 +105,20 @@ fun ReplyContent(
                         is TdApi.MessageOriginChat -> {
                             val chatId =
                                 (reply.origin as TdApi.MessageOriginChat).senderChatId
+                            senderColor = chats[chatId]?.accentColorId?.let { AccentColorRepository.getAccentColor(it)?.nameColor } ?: Color.White
                             chats[chatId]?.title ?: ""
                         }
 
                         is TdApi.MessageOriginChannel -> {
                             val chatId = (reply.origin as TdApi.MessageOriginChannel).chatId
+                            senderColor = chats[chatId]?.accentColorId?.let { AccentColorRepository.getAccentColor(it)?.nameColor } ?: Color.White
                             chats[chatId]?.title ?: ""
                         }
 
                         is TdApi.MessageOriginUser -> {
                             val userId =
                                 (reply.origin as TdApi.MessageOriginUser).senderUserId
+                            senderColor = users[userId]?.accentColorId?.let { AccentColorRepository.getAccentColor(it)?.nameColor } ?: Color.White
                             users[userId]?.username ?: ""
                         }
 
@@ -118,7 +130,7 @@ fun ReplyContent(
                     }
                     Text(
                         senderName,
-                        color = if (senderIsMe) Color.White else NeoBlue,
+                        color = if (isMinimalist) senderColor else if (senderIsMe) Color.White else NeoBlue,
                         fontSize = 12.sp,
                         fontFamily = miSans,
                         maxLines = 1,

@@ -14,7 +14,8 @@ fun SharedTransitionScope.TgAnimation(
     animatedContentScope: AnimatedContentScope,
     animation: TdApi.Animation,
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    id: String
 ) {
     when (animation.mimeType) {
         "video/mp4" -> {
@@ -22,7 +23,7 @@ fun SharedTransitionScope.TgAnimation(
         }
 
         "image/gif" -> {
-            TgImage(animatedContentScope, animation.animation, null, modifier, navController)
+            TgImage(animatedContentScope, animation.animation, null, modifier, navController, id)
         }
     }
 }

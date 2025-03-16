@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -27,8 +29,11 @@ import org.drinkless.tdlib.TdApi
 fun SharedTransitionScope.MessageContent(
     animatedContentScope: AnimatedContentScope,
     content: TdApi.MessageContent,
+    messageId: Long,
     users: Map<Long, TdApi.User>,
-    navController: NavController
+    navController: NavController,
+    senderColor: Color,
+    fontSize: TextUnit = 14.sp
 ) {
     /**
      * MessageText.CONSTRUCTOR, //WIP
@@ -112,8 +117,12 @@ fun SharedTransitionScope.MessageContent(
         is TdApi.MessageText -> {
             TgRichText(
                 content.text.entities.toList(),
-                content.text.text
+                content.text.text,
+                fontSize = fontSize
             )
+            content.linkPreview?.let {
+                LinkPreviewCard(it, animatedContentScope, navController, senderColor = senderColor, messageId = messageId)
+            }
         }
 
         is TdApi.MessagePhoto -> {
@@ -126,14 +135,15 @@ fun SharedTransitionScope.MessageContent(
                 animatedContentScope, file, thumbnail, modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .aspectRatio(aspectRatio),
-                navController = navController
+                navController = navController,
+                id = messageId.toString()
             )
             if (content.caption.text.isNotEmpty()) {
                 TgRichText(
                     content.caption.entities.toList(),
                     content.caption.text,
+                    fontSize = fontSize,
                     modifier = Modifier
-                        .padding(horizontal = 8.dp)
                         .padding(top = 4.dp)
                 )
             }
@@ -147,7 +157,8 @@ fun SharedTransitionScope.MessageContent(
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .aspectRatio(aspectRatio),
-                navController = navController
+                navController = navController,
+                messageId.toString()
             )
         }
 
@@ -158,7 +169,8 @@ fun SharedTransitionScope.MessageContent(
                 content.animation, modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .aspectRatio(aspectRatio),
-                navController
+                navController,
+                messageId.toString()
             )
         }
 
@@ -171,7 +183,8 @@ fun SharedTransitionScope.MessageContent(
                     it, modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .aspectRatio(aspectRatio),
-                    navController
+                    navController,
+                    messageId.toString()
                 )
             }
         }
@@ -187,6 +200,7 @@ fun SharedTransitionScope.MessageContent(
                 TgRichText(
                     content.caption.entities.toList(),
                     content.caption.text,
+                    fontSize = fontSize,
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .padding(top = 4.dp)
@@ -200,6 +214,7 @@ fun SharedTransitionScope.MessageContent(
                 TgRichText(
                     content.caption.entities.toList(),
                     content.caption.text,
+                    fontSize = fontSize,
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .padding(top = 4.dp)

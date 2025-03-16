@@ -10,10 +10,12 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,7 +25,10 @@ import cn.spacexc.neogram.ui.screen.auth.AuthScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
 import cn.spacexc.neogram.ui.screen.image.ImageViewerScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
+import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
+import cn.spacexc.neogram.ui.screen.splash.SplashScreen
+import cn.spacexc.neogram.ui.screen.test.UITestScreen
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.drinkless.tdlib.TdApi
@@ -46,20 +51,33 @@ class MainActivity : ComponentActivity() {
 
             SharedTransitionLayout {
                 NavHost(navController,
-                    startDestination = AuthScreen,
+                    startDestination = SplashScreen,
                     enterTransition = {
                         slideInHorizontally(tween(400, 0)) { it } + fadeIn(tween(400))
                     },
                     exitTransition = {
-                        slideOutHorizontally(tween(400, 150)) { -it } + fadeOut(tween(400))
+                        try {
+                            targetState.toRoute<LinkPreviewScreen>()
+                            fadeOut(tween(300))
+                        } catch (_: Exception) {
+                            slideOutHorizontally(tween(300, 0)) { -it } + fadeOut(tween(300))
+                        }
                     },
                     popEnterTransition = {
-                        slideInHorizontally(tween(400, 50)) { -it } + fadeIn(tween(400))
+                        try {
+                            initialState.toRoute<LinkPreviewScreen>()
+                            fadeIn(tween(300))
+                        } catch (_: Exception) {
+                            slideInHorizontally(tween(400, 0)) { -it } + fadeIn(tween(400))
+                        }
                     },
                     popExitTransition = {
                         slideOutHorizontally(tween(300, 0)) { it } + fadeOut(tween(300))
                     }
                 ) {
+                    composable<SplashScreen> {
+                        SplashScreen(navController)
+                    }
                     composable<AuthScreen> {
                         AuthScreen(navController)
                     }
@@ -79,11 +97,29 @@ class MainActivity : ComponentActivity() {
                         SendMessageScreen(it.toRoute<SendMessageScreen>(), navController)
                     }
                     composable<ImageViewerScreen> {
+                        val (imagePath, id) = it.toRoute<ImageViewerScreen>()
                         ImageViewerScreen(
                             this,
                             navController,
-                            it.toRoute<ImageViewerScreen>().imagePath
+                            imagePath,
+                            id
                         )
+                    }
+                    composable<LinkPreviewScreen> {
+                        val (title, url, description, red, green, blue, messageId) = it.toRoute<LinkPreviewScreen>()
+                        LinkPreviewScreen(
+                            title,
+                            url,
+                            description,
+                            Color(red, green, blue),
+                            messageId,
+                            this,
+                            navController
+                        )
+                    }
+
+                    composable<UITestScreen> {
+                        UITestScreen()
                     }
                 }
             }

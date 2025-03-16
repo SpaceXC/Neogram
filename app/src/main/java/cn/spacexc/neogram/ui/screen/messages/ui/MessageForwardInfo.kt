@@ -44,7 +44,7 @@ fun MessageForwardInfo(
     Text(
         "转发自$originName",
         fontFamily = miSans,
-        fontSize = 14.sp,
+        fontSize = 13.sp,
         fontWeight = FontWeight.Medium,
         color = NeoBlue,
         modifier = modifier

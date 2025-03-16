@@ -40,7 +40,8 @@ fun SharedTransitionScope.TgSticker(
     animatedContentScope: AnimatedContentScope,
     sticker: TdApi.Sticker,
     modifier: Modifier,
-    navController: NavController
+    navController: NavController,
+    id: String
 ) {
     /**
     StickerFormatWebp.CONSTRUCTOR,
@@ -49,7 +50,7 @@ fun SharedTransitionScope.TgSticker(
      */
     when (sticker.format) {
         is TdApi.StickerFormatWebp -> {
-            TgImage(animatedContentScope, sticker.sticker, null, modifier, navController)
+            TgImage(animatedContentScope, sticker.sticker, null, modifier, navController, id)
         }
 
         is TdApi.StickerFormatWebm -> {
