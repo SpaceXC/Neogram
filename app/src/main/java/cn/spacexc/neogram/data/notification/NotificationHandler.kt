@@ -1,21 +1,22 @@
 package cn.spacexc.neogram.data.notification
 
 import android.util.Log
+import cn.spacexc.neogram.utils.LogUtils
 import org.drinkless.tdlib.TdApi
 
 fun TdApi.Object.notificationHandler() {
     when(this) {
         is TdApi.UpdateActiveNotifications -> {
-            Log.d("NOTIFICATION", "notificationHandler: $this")
+            LogUtils.info("NOTIFICATION", "$this")
         }
         is TdApi.UpdateNotificationGroup -> {
-            Log.d("NOTIFICATION", "notificationHandler: $this")
+            LogUtils.info("NOTIFICATION", "$this")
         }
         is TdApi.UpdateNotification -> {
-            Log.d("NOTIFICATION", "notificationHandler: $this")
+            LogUtils.info("NOTIFICATION", "$this")
         }
         is TdApi.UpdateHavePendingNotifications -> {
-            Log.d("NOTIFICATION", "notificationHandler: $this")
+            LogUtils.info("NOTIFICATION", "$this")
         }
     }
 }
