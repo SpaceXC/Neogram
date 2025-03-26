@@ -1,9 +1,15 @@
 package cn.spacexc.neogram.ui.screen.messages
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.spacexc.neogram.Application
@@ -19,8 +25,9 @@ import kotlinx.coroutines.sync.withLock
 import org.drinkless.tdlib.TdApi
 import java.io.File
 
-class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessageId: Long) :
-    ViewModel() {
+class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessageId: Long) : ViewModel() {
+    val application = Application.getApplication()
+
     val mutex = Mutex()
     var messages by mutableStateOf(mapOf<Long, TdApi.Message>())
     private var lastMessageId = 0L
@@ -32,6 +39,14 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
     val audioRecorder = AndroidAudioRecorder(Application.getApplication())
     var currentFile: File? = null
     var startTime = 0L
+
+    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager =
+            application.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibratorManager.defaultVibrator
+    } else {
+        application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    }
 
     init {
         TdClient.send(TdApi.OpenChat(chatId))
@@ -166,5 +181,13 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
 
     fun markSelfAsNotRecording() {
         TdClient.send(TdApi.SendChatAction(chatId, 0, "", TdApi.ChatActionCancel()))
+    }
+
+    fun vibrate() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100L, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            vibrator.vibrate(100L)
+        }
     }
 }

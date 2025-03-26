@@ -1,6 +1,8 @@
 package cn.spacexc.neogram.ui.component
 
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -30,6 +32,7 @@ fun DraggableBox(
     modifier: Modifier = Modifier,
     threshold: Float,
     onProgressChange: (Float) -> Unit,
+    triggerThreshold: Float,
     onTriggered: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -60,14 +63,14 @@ fun DraggableBox(
                 },
                 onDragEnd = {
                     // 监听手指抬起事件
-                    if (actualOffset > threshold) {
+                    if (actualOffset > triggerThreshold) {
                         onTriggered()
                     }
                     scope.launch {
                         animate(
                             initialValue = currentOffset,
                             targetValue = 0f,
-                            animationSpec = tween(durationMillis = 200),
+                            animationSpec = spring(dampingRatio = 0.6f, stiffness = 1300f),
                         ) { value, _ ->
                             currentOffset = value
                         }

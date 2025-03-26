@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -23,7 +24,7 @@ import org.drinkless.tdlib.TdApi.TextEntityTypeItalic
 import org.drinkless.tdlib.TdApi.TextEntityTypeUnderline
 
 @Composable
-fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifier = Modifier, fontSize: TextUnit = 14.sp) {
+fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifier = Modifier, textStyle: TextStyle = TextStyle()) {
     val inlineTextContent = mutableMapOf<String, InlineTextContent>()
     val annotatedString = buildAnnotatedString {
         /**
@@ -101,9 +102,14 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifie
         annotatedString,
         color = Color.White,
         fontFamily = miSans,
-        fontSize = fontSize,
+        style = textStyle,
         //fontWeight = FontWeight(450),
         inlineContent = inlineTextContent,
         modifier = modifier
     )
+}
+
+@Composable
+fun TgRichText(formattedText: TdApi.FormattedText, modifier: Modifier = Modifier, textStyle: TextStyle = TextStyle()) {
+    TgRichText(formattedText.entities.toList(), formattedText.text, modifier, textStyle)
 }

@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -186,7 +187,9 @@ fun TitleFrame(
                     color = Color.White,
                     fontFamily = miSans,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.End
+                    textAlign = TextAlign.End,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = when (connectionState) {
@@ -201,7 +204,9 @@ fun TitleFrame(
                     fontFamily = miSans,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.End,
-                    modifier = Modifier.offset(y = (-3).dp)
+                    modifier = Modifier.offset(y = (-3).dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

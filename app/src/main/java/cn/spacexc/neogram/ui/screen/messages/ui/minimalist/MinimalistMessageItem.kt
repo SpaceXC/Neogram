@@ -174,16 +174,17 @@ fun SharedTransitionScope.MinimalistMessageItem(
                 MessageForwardInfo(it, chats, users)
             }
             message.replyTo?.let { reply ->
-                ReplyContent(reply, senderIsMe, messages, users, chats)
+                ReplyContent(reply, senderIsMe, messages, users, chats, false)
             }
             MessageContent(
-                animatedContentScope,
-                message.content,
-                message.id,
-                users,
-                navController,
-                userAccentColor?.nameColor ?: Color.White,
-                13.5.sp
+                animatedContentScope = animatedContentScope,
+                content = message.content,
+                messageId = message.id,
+                users = users,
+                navController = navController,
+                senderColor = userAccentColor?.nameColor ?: Color.White,
+                fontSize = 13.5.sp,
+                senderIsMe = senderIsMe
             )
             message.interactionInfo?.let {
                 MessageReactions(it)

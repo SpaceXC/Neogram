@@ -27,9 +27,33 @@
 -dontwarn java.awt.Window
 -dontwarn java.lang.reflect.AnnotatedType
 
+-keep class cn.spacexc.*
+-keep class cn.spacexc.**
+
 -keep class org.drinkless.tdlib.TdApi { *; }
 -keepclassmembers class org.drinkless.tdlib.TdApi { *; }
 -keep class org.drinkless.tdlib.TdApi$* { *; }
 -keep class org.drinkless.tdlib.Client
 -keepclassmembers class org.drinkless.tdlib.Client { *; }
 -keep class org.drinkless.tdlib.Client$* { *; }
+
+-keepclassmembers class * extends androidx.datastore.preferences.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+
+-keepclassmembers class cn.spacexc.* {
+    <fields>;
+}
+
+-keepclassmembers class cn.spacexc.** {
+    <fields>;
+}
+
+-keepclassmembers class androidx.datastore.preferences.PreferencesProto$PreferenceMap {
+    private androidx.datastore.preferences.protobuf.MapFieldLite preferences_;
+}
+
+-keepclassmembers class androidx.datastore.preferences.PreferencesProto$Value {
+     private java.lang.Object value_;
+     private int valueCase_;
+}

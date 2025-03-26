@@ -31,6 +31,7 @@ import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.placeholder.material.shimmerHighlightColor
 import com.google.accompanist.placeholder.shimmer
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * Created by Xiaochang on 2022/9/17.
@@ -67,7 +68,7 @@ fun Modifier.rotateInput(
     val scope = rememberCoroutineScope()
     onRotaryScrollEvent {
         scope.launch {
-            state.scrollBy(it.verticalScrollPixels)
+            scope.launch { state.scrollTo((state.value + it.verticalScrollPixels).roundToInt()) }
         }
         true
     }

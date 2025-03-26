@@ -83,6 +83,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cn.spacexc.neogram.Application
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.icons.ChatBubble
@@ -268,6 +269,9 @@ fun SharedTransitionScope.MessagesScreen(
                             messages = viewModel.messages,
                             isRead = messageId <= (lastReadOutboxMessage ?: (messageId + 1)),
                             senderIsMe = senderIsMe,
+                            onVibrate = {
+                                viewModel.vibrate()
+                            },
                             navController = navController
                         ) { senderName, replyContent ->
                             navController.navigate(

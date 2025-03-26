@@ -10,10 +10,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import cn.spacexc.neogram.settings.neogramSettings
 import cn.spacexc.neogram.ui.component.TgAnimation
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.component.TgRichText
@@ -23,6 +25,9 @@ import cn.spacexc.neogram.ui.component.TgVoiceNote
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.utils.textDescription
 import org.drinkless.tdlib.TdApi
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.style.TextAlign
+import cn.spacexc.neogram.proto.settings.ChatItemStyle
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -33,8 +38,11 @@ fun SharedTransitionScope.MessageContent(
     users: Map<Long, TdApi.User>,
     navController: NavController,
     senderColor: Color,
-    fontSize: TextUnit = 14.sp
+    fontSize: TextUnit = 14.sp,
+    senderIsMe: Boolean
 ) {
+    val settings by neogramSettings()
+
     /**
      * MessageText.CONSTRUCTOR, //WIP
      * MessageAnimation.CONSTRUCTOR,
@@ -118,10 +126,19 @@ fun SharedTransitionScope.MessageContent(
             TgRichText(
                 content.text.entities.toList(),
                 content.text.text,
-                fontSize = fontSize
+                textStyle = TextStyle(
+                    fontSize = fontSize,
+                    textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
+                )
             )
             content.linkPreview?.let {
-                LinkPreviewCard(it, animatedContentScope, navController, senderColor = senderColor, messageId = messageId)
+                LinkPreviewCard(
+                    it,
+                    animatedContentScope,
+                    navController,
+                    senderColor = senderColor,
+                    messageId = messageId
+                )
             }
         }
 
@@ -142,7 +159,10 @@ fun SharedTransitionScope.MessageContent(
                 TgRichText(
                     content.caption.entities.toList(),
                     content.caption.text,
-                    fontSize = fontSize,
+                    textStyle = TextStyle(
+                        fontSize = fontSize,
+                        textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
+                    ),
                     modifier = Modifier
                         .padding(top = 4.dp)
                 )
@@ -200,9 +220,11 @@ fun SharedTransitionScope.MessageContent(
                 TgRichText(
                     content.caption.entities.toList(),
                     content.caption.text,
-                    fontSize = fontSize,
+                    textStyle = TextStyle(
+                        fontSize = fontSize,
+                        textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
+                    ),
                     modifier = Modifier
-                        .padding(horizontal = 8.dp)
                         .padding(top = 4.dp)
                 )
             }
@@ -214,7 +236,10 @@ fun SharedTransitionScope.MessageContent(
                 TgRichText(
                     content.caption.entities.toList(),
                     content.caption.text,
-                    fontSize = fontSize,
+                    textStyle = TextStyle(
+                        fontSize = fontSize,
+                        textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
+                    ),
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .padding(top = 4.dp)

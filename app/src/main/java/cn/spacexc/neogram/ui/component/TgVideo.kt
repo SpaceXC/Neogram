@@ -31,10 +31,6 @@ import java.io.File
 
 @Composable
 fun TgVideo(file: TdApi.File, modifier: Modifier) {
-    /*Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
-        Text("Video/GIF Sticker is not supported...yet", color = Color.White, fontSize = 10.sp, fontFamily = miSans, modifier = Modifier.alpha(0.7f), textAlign = TextAlign.Center)
-    }*/
-
     var videoPath by remember { mutableStateOf(file.local.path) }
     var exoPlayer: ExoPlayer? = remember { null }
     LaunchedEffect(Unit) {
@@ -46,6 +42,8 @@ fun TgVideo(file: TdApi.File, modifier: Modifier) {
     }
     DisposableEffect(Unit) {
         onDispose {
+            exoPlayer?.stop()
+            exoPlayer?.release()
             exoPlayer?.release()
         }
     }
@@ -59,6 +57,7 @@ fun TgVideo(file: TdApi.File, modifier: Modifier) {
             player.setMediaItem(MediaItem.fromUri(File(videoPath).toUri()))
             player.playWhenReady = true
             player.repeatMode = Player.REPEAT_MODE_ALL
+            player.volume = 0f
             player.prepare()
         }
     }

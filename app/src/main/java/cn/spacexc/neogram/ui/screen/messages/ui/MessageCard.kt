@@ -1,61 +1,46 @@
 package cn.spacexc.neogram.ui.screen.messages.ui
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.overscroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.color.AccentColorRepository
+import cn.spacexc.neogram.proto.settings.ChatItemStyle
+import cn.spacexc.neogram.settings.neogramSettings
 import cn.spacexc.neogram.ui.component.DraggableBox
-import cn.spacexc.neogram.ui.screen.messages.MessageSwipeToReplyState
 import cn.spacexc.neogram.ui.screen.messages.ui.bubble.BubbledMessageItem
 import cn.spacexc.neogram.ui.screen.messages.ui.minimalist.MinimalistMessageItem
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import org.drinkless.tdlib.TdApi
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -72,6 +57,7 @@ fun SharedTransitionScope.MessageCard(
     isRead: Boolean,
     senderIsMe: Boolean,
     navController: NavController,
+    onVibrate: () -> Unit,
     onReplyMessage: (String, String) -> Unit
 ) {
     val localDensity = LocalDensity.current
@@ -80,7 +66,8 @@ fun SharedTransitionScope.MessageCard(
     var name by remember { mutableStateOf("") }
     var accentColor: AccentColorRepository.AccentColor? by remember { mutableStateOf(null) }
 
-    val isMinimalist = true
+    val settings by neogramSettings()
+    val isMinimalist = settings.chatItemStyle == ChatItemStyle.Minimalist
 
     if (message.senderId is TdApi.MessageSenderChat) {
         val chatId = (message.senderId as TdApi.MessageSenderChat).chatId
@@ -164,8 +151,12 @@ fun SharedTransitionScope.MessageCard(
                     modifier = Modifier.fillMaxWidth(),
                     50f,
                     onProgressChange = {
+                        if (progress > 1.2) {
+                            onVibrate()
+                        }
                         progress = it
                     },
+                    triggerThreshold = 50f * 1.1f,
                     onTriggered = {
                         onReplyMessage(
                             name,

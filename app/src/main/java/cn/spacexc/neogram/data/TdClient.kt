@@ -1,10 +1,10 @@
 package cn.spacexc.neogram.data
 
-import cn.spacexc.neogram.data.auth.AuthRepository.authApp
 import cn.spacexc.neogram.data.auth.AuthRepository.authHandler
 import cn.spacexc.neogram.data.chat.ChatListRepository.chatListHandler
 import cn.spacexc.neogram.data.color.AccentColorRepository.accentColorsHandler
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository.connectionStateHandler
+import cn.spacexc.neogram.data.folders.FoldersRepository.foldersHandler
 import cn.spacexc.neogram.data.message.MessageRepository.messageHandler
 import cn.spacexc.neogram.data.notification.notificationHandler
 import cn.spacexc.neogram.data.user.UserRepository.userHandler
@@ -25,6 +25,7 @@ object TdClient {
                 messageHandler()
                 accentColorsHandler()
                 notificationHandler()
+                foldersHandler()
             }
         }
     }

@@ -78,3 +78,43 @@ fun SharedTransitionScope.TgImage(
         )
     }
 }
+
+@Composable
+fun TgImage(
+    file: File,
+    thumbnail: ByteArray?,
+    modifier: Modifier = Modifier
+) {
+    var localPath by remember { mutableStateOf(file.local.path) }
+    LaunchedEffect(Unit) {
+        if (localPath.isEmpty()) {
+            TdClient.send(DownloadFile(file.id, 1, 0, 0, true), {
+                if (it is File) {
+                    localPath = it.local.path
+                }
+            }, {})
+        }
+    }
+    if (localPath.isEmpty()) {
+        if (thumbnail != null) {
+            val thumbnailBitmap =
+                BitmapFactory.decodeByteArray(thumbnail, 0, thumbnail.size)
+                    .asImageBitmap()
+            Image(
+                thumbnailBitmap,
+                contentDescription = null,
+                modifier = modifier,
+                contentScale = ContentScale.FillBounds
+            )
+        } else {
+            Box(modifier = modifier.shimmerPlaceHolder(true))
+        }
+    } else {
+        AsyncImage(
+            url = localPath,
+            contentDescription = null,
+            modifier = modifier,
+            placeholderEnabled = false
+        )
+    }
+}

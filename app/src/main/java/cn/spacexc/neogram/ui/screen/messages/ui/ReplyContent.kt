@@ -29,6 +29,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.data.color.AccentColorRepository
+import cn.spacexc.neogram.proto.settings.ChatItemStyle
+import cn.spacexc.neogram.settings.neogramSettings
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
@@ -42,12 +44,16 @@ fun ReplyContent(
     messages: Map<Long, TdApi.Message>,
     users: Map<Long, TdApi.User>,
     chats: Map<Long, TdApi.Chat>,
-    isMinimalist: Boolean = true
+    shouldMessageBeDisplayedInBubble: Boolean,
 ) {
     val localDensity = LocalDensity.current
+    val settings by neogramSettings()
     var textHeight by remember { mutableStateOf(0.dp) }
     var senderName by remember { mutableStateOf("") }
     var senderColor by remember { mutableStateOf(Color.White) }
+
+    var shouldBeColorful = !shouldMessageBeDisplayedInBubble || settings.chatItemStyle == ChatItemStyle.Minimalist
+
     Row(
         modifier = Modifier
             .padding(bottom = 2.dp),
@@ -58,7 +64,7 @@ fun ReplyContent(
                 .padding(end = 4.dp)
                 .width(3.dp)
                 .height(textHeight)
-                .background((if (isMinimalist) senderColor else Color.White).copy(alpha = 0.5f), CircleShape)
+                .background((if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue).copy(alpha = 0.5f), CircleShape)
         )
         if (reply is TdApi.MessageReplyToMessage) {
             Column(modifier = Modifier.onSizeChanged {
@@ -83,7 +89,7 @@ fun ReplyContent(
                         }
                         Text(
                             senderName,
-                            color = if (isMinimalist) senderColor else if (senderIsMe) Color.White else NeoBlue,
+                            color = if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue,
                             fontSize = 12.sp,
                             fontFamily = miSans,
                             maxLines = 1,
@@ -130,7 +136,7 @@ fun ReplyContent(
                     }
                     Text(
                         senderName,
-                        color = if (isMinimalist) senderColor else if (senderIsMe) Color.White else NeoBlue,
+                        color = if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue,
                         fontSize = 12.sp,
                         fontFamily = miSans,
                         maxLines = 1,

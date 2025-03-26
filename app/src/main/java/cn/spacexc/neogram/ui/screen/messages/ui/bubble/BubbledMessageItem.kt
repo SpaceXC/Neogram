@@ -49,7 +49,7 @@ fun SharedTransitionScope.BubbledMessageItem(
     animatedContentScope: AnimatedContentScope,
     navController: NavController
 ) {
-    Column {
+    Column(horizontalAlignment = if (senderIsMe) Alignment.End else Alignment.Start) {
         if (isGroupChat && !isPreviousOneContinuous/* && message.content !is TdApi.MessageText*/) {
             Text(
                 username,
@@ -73,7 +73,7 @@ fun SharedTransitionScope.BubbledMessageItem(
 
         if (message.content !is TdApi.MessageText) {
             message.replyTo?.let { reply ->
-                ReplyContent(reply, senderIsMe, messages, users, chats)
+                ReplyContent(reply, senderIsMe, messages, users, chats, shouldMessageDisplayedInABox)
             }
         }
 
@@ -96,15 +96,16 @@ fun SharedTransitionScope.BubbledMessageItem(
                             MessageForwardInfo(it, chats, users)
                         }
                         message.replyTo?.let { reply ->
-                            ReplyContent(reply, senderIsMe, messages, users, chats)
+                            ReplyContent(reply, senderIsMe, messages, users, chats, true)
                         }
                         MessageContent(
-                            animatedContentScope,
-                            message.content,
-                            message.id,
-                            users,
-                            navController,
-                            usernameColor
+                            animatedContentScope = animatedContentScope,
+                            content = message.content,
+                            messageId = message.id,
+                            users = users,
+                            navController = navController,
+                            senderColor = usernameColor,
+                            senderIsMe = senderIsMe
                         )
                         message.interactionInfo?.let {
                             MessageReactions(it)
@@ -147,12 +148,13 @@ fun SharedTransitionScope.BubbledMessageItem(
             } else {
                 Box {
                     MessageContent(
-                        animatedContentScope,
-                        message.content,
-                        message.id,
-                        users,
-                        navController,
-                        usernameColor
+                        animatedContentScope = animatedContentScope,
+                        content = message.content,
+                        messageId = message.id,
+                        users = users,
+                        navController = navController,
+                        senderColor = usernameColor,
+                        senderIsMe = senderIsMe
                     )
 
                     Column(modifier = Modifier.align(Alignment.BottomStart)) {

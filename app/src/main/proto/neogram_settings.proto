@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_package = "cn.spacexc.neogram.proto.settings";
+option java_multiple_files = true;
+
+enum ChatItemStyle {
+  Bubble = 0;
+  Minimalist = 1;
+}
+
+message NeogramSettings {
+  ChatItemStyle chatItemStyle = 1;
+}
