@@ -1,16 +1,20 @@
 package cn.spacexc.neogram.ui.screen.chats
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.ChatTypePrivate
 
 
 class ChatListViewModel : ViewModel() {
     val chatList = combineChatListAndUsers(ChatListRepository.chatList, UserRepository.users, ChatListRepository.chatActions)
+
+    var currentSelectedFolderId by mutableIntStateOf(0)
 
     private fun combineChatListAndUsers(
         chatListFlow: Flow<List<ChatListRepository.ChatItem>>,

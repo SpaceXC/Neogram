@@ -1,10 +1,5 @@
 package cn.spacexc.neogram.ui.screen.messages.ui
 
-import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -27,19 +22,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
-import cn.spacexc.neogram.settings.neogramSettings
+import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.DraggableBox
+import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.bubble.BubbledMessageItem
 import cn.spacexc.neogram.ui.screen.messages.ui.minimalist.MinimalistMessageItem
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
+import cn.spacexc.telegram.ui.component.clickVfx
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
@@ -57,6 +53,7 @@ fun SharedTransitionScope.MessageCard(
     isRead: Boolean,
     senderIsMe: Boolean,
     navController: NavController,
+    settings: NeogramSettings,
     onVibrate: () -> Unit,
     onReplyMessage: (String, String) -> Unit
 ) {
@@ -66,7 +63,6 @@ fun SharedTransitionScope.MessageCard(
     var name by remember { mutableStateOf("") }
     var accentColor: AccentColorRepository.AccentColor? by remember { mutableStateOf(null) }
 
-    val settings by neogramSettings()
     val isMinimalist = settings.chatItemStyle == ChatItemStyle.Minimalist
 
     if (message.senderId is TdApi.MessageSenderChat) {
@@ -90,7 +86,21 @@ fun SharedTransitionScope.MessageCard(
         }
     }
 
-    Box(modifier = modifier, contentAlignment = CenterStart) {
+    Box(modifier = modifier.clickVfx(onLongClick = {
+        val messageContent = (message.content as? TdApi.MessageText)
+        navController.navigate(
+            SendMessageScreen(
+                message.chatId,
+                "",
+                0,
+                "",
+                "",
+                message.id,
+                message.chatId,
+                messageContent?.text?.text
+            )
+        )
+    }), contentAlignment = CenterStart) {
         var progress by remember { mutableFloatStateOf(0f) }
 
         Icon(
@@ -181,6 +191,7 @@ fun SharedTransitionScope.MessageCard(
                             isRead = isRead,
                             animatedContentScope = animatedContentScope,
                             navController = navController,
+                            settings = settings
                         )
                     } else {
                         BubbledMessageItem(
@@ -197,6 +208,7 @@ fun SharedTransitionScope.MessageCard(
                             isRead = isRead,
                             animatedContentScope = animatedContentScope,
                             navController = navController,
+                            settings = settings
                         )
                     }
                 }

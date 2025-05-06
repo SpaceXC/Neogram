@@ -7,9 +7,6 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseInCubic
-import androidx.compose.animation.core.EaseOutCirc
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,7 +46,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -129,7 +125,6 @@ fun SharedTransitionScope.ChatListScreen(
 
     val focusRequester = remember { FocusRequester() }
 
-    var currentSelectedFolderId by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(folders) {
         LogUtils.info("FOLDER", folders.toString())
@@ -137,17 +132,20 @@ fun SharedTransitionScope.ChatListScreen(
 
     val displayedChatList by remember {
         derivedStateOf {
-            if (currentSelectedFolderId == 0) chatList
+            if (viewModel.currentSelectedFolderId == 0) chatList
             else {
-                val folder = folders[currentSelectedFolderId]
+                val folder = folders[viewModel.currentSelectedFolderId]
                 if (folder == null) emptyList()
                 else {
                     LogUtils.info("FOLDER", folder.includedChatIds.toString())
-                    folder.includedChatIds.map { includedChatId -> chatList.firstOrNull { it.id == includedChatId } }
-                        .mapNotNull { it }
+                    chatList.filter { folder.includedChatIds.contains(it.id) }
                 }
             }
         }
+    }
+
+    LaunchedEffect(remember { derivedStateOf { scrollState.firstVisibleItemScrollOffset } }) {
+        LogUtils.info("offset", "${scrollState.firstVisibleItemScrollOffset}")
     }
 
     TitleFrame(
@@ -219,8 +217,8 @@ fun SharedTransitionScope.ChatListScreen(
                     state = scrollState
                 ) {
                     item {
-                        ChatFolders(currentSelectedFolderId) {
-                            currentSelectedFolderId = it
+                        ChatFolders(viewModel.currentSelectedFolderId) {
+                            viewModel.currentSelectedFolderId = it
                         }
                     }
 

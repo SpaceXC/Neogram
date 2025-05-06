@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageContent
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageForwardInfo
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageReactions
@@ -46,6 +47,7 @@ fun SharedTransitionScope.BubbledMessageItem(
     messages: Map<Long, TdApi.Message>,
     senderIsMe: Boolean,
     isRead: Boolean,
+    settings: NeogramSettings,
     animatedContentScope: AnimatedContentScope,
     navController: NavController
 ) {
@@ -73,7 +75,15 @@ fun SharedTransitionScope.BubbledMessageItem(
 
         if (message.content !is TdApi.MessageText) {
             message.replyTo?.let { reply ->
-                ReplyContent(reply, senderIsMe, messages, users, chats, shouldMessageDisplayedInABox)
+                ReplyContent(
+                    reply,
+                    senderIsMe,
+                    messages,
+                    users,
+                    chats,
+                    settings,
+                    shouldMessageDisplayedInABox
+                )
             }
         }
 
@@ -96,7 +106,7 @@ fun SharedTransitionScope.BubbledMessageItem(
                             MessageForwardInfo(it, chats, users)
                         }
                         message.replyTo?.let { reply ->
-                            ReplyContent(reply, senderIsMe, messages, users, chats, true)
+                            ReplyContent(reply, senderIsMe, messages, users, chats, settings, true)
                         }
                         MessageContent(
                             animatedContentScope = animatedContentScope,
@@ -105,7 +115,8 @@ fun SharedTransitionScope.BubbledMessageItem(
                             users = users,
                             navController = navController,
                             senderColor = usernameColor,
-                            senderIsMe = senderIsMe
+                            senderIsMe = senderIsMe,
+                            settings = settings
                         )
                         message.interactionInfo?.let {
                             MessageReactions(it)
@@ -154,7 +165,8 @@ fun SharedTransitionScope.BubbledMessageItem(
                         users = users,
                         navController = navController,
                         senderColor = usernameColor,
-                        senderIsMe = senderIsMe
+                        senderIsMe = senderIsMe,
+                        settings = settings
                     )
 
                     Column(modifier = Modifier.align(Alignment.BottomStart)) {

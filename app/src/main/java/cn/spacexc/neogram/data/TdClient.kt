@@ -8,6 +8,7 @@ import cn.spacexc.neogram.data.folders.FoldersRepository.foldersHandler
 import cn.spacexc.neogram.data.message.MessageRepository.messageHandler
 import cn.spacexc.neogram.data.notification.notificationHandler
 import cn.spacexc.neogram.data.user.UserRepository.userHandler
+import cn.spacexc.neogram.utils.LogUtils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.Client
@@ -18,6 +19,7 @@ object TdClient {
     private val updateHandler = ResultHandler {
         MainScope().launch {
             it.apply {
+                LogUtils.info("UPDATE", this.toString())
                 connectionStateHandler()
                 authHandler()
                 chatListHandler()

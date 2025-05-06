@@ -44,7 +44,10 @@ data class SendMessageScreen(
     val defaultValue: String,
     val replyToMessageId: Long = 0,
     val replyMessageSenderName: String = "",
-    val replyMessageContent: String = ""
+    val replyMessageContent: String = "",
+    val messageIdToEdit: Long? = null,
+    val messageChatId: Long = 0,
+    val messageContentToEdit: String? = null
 )
 
 @Composable
@@ -53,18 +56,20 @@ fun SendMessageScreen(
     navController: NavController
 ) {
     val viewModel = viewModel { SendMessageViewModel(props.chatId, props.replyToMessageId) }
-    var inputValue by remember { mutableStateOf(props.defaultValue) }
+    var inputValue by remember { mutableStateOf(props.messageContentToEdit ?: props.defaultValue) }
+    var isLoading by remember { mutableStateOf(false) }
     TitleFrame("编辑消息", onTitleClicked = {}, onActionClicked = {
         navController.previousBackStackEntry
             ?.savedStateHandle
             ?.set("inputValue", inputValue)
         viewModel.updateDraftMessage(inputValue)
         navController.popBackStack()
-    }) {
+    }, isLoading = isLoading) {
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(top = it)
-            .padding(8.dp)) {
+            .padding(8.dp)
+        ) {
             if (props.replyToMessageId != 0L) {
                 val localDensity = LocalDensity.current
                 var textHeight by remember { mutableStateOf(0.dp) }
@@ -116,11 +121,29 @@ fun SendMessageScreen(
                 text = "Send!",
                 icon = Icons.AutoMirrored.Rounded.Send
             ) {
-                viewModel.sendTextMessage(inputValue)
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.set("inputValue", "")
-                navController.navigateUp()
+                if (props.messageIdToEdit != null) {
+                    isLoading = true
+                    viewModel.updateTextMessage(
+                        props.messageChatId,
+                        props.messageIdToEdit,
+                        inputValue,
+                        {
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("inputValue", "")
+                            navController.navigateUp()
+                        },
+                        {
+                            isLoading = false
+                        }
+                    )
+                } else {
+                    viewModel.sendTextMessage(inputValue)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("inputValue", "")
+                    navController.navigateUp()
+                }
             }
         }
     }

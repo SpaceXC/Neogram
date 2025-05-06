@@ -1,26 +1,17 @@
 package cn.spacexc.neogram.data.chat
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.color.AccentColorRepository
-import cn.spacexc.neogram.data.folders.FoldersRepository
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.deepCopy
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.Chat
-import org.drinkless.tdlib.TdApi.ChatAction
-import org.drinkless.tdlib.TdApi.ChatActionCancel
 import org.drinkless.tdlib.TdApi.ChatListMain
 import org.drinkless.tdlib.TdApi.ChatPosition
 import org.drinkless.tdlib.TdApi.Message
@@ -66,7 +57,7 @@ object ChatListRepository {
             mutex.withLock {
                 if (!haveFullyLoaded && limit > chats.value.size) {
                     TdClient.send(
-                        TdApi.LoadChats(TdApi.ChatListFolder(200), limit - chats.value.size),
+                        TdApi.LoadChats(ChatListMain(), limit - chats.value.size),
                         {
                             if (it is TdApi.Ok) {
                                 getMainChatList(limit)

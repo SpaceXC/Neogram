@@ -10,33 +10,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import org.drinkless.tdlib.TdApi
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import cn.spacexc.neogram.data.color.AccentColorRepository
+import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageContent
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageForwardInfo
@@ -45,6 +44,7 @@ import cn.spacexc.neogram.ui.screen.messages.ui.ReplyContent
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.toDateStr
+import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -62,6 +62,7 @@ fun SharedTransitionScope.MinimalistMessageItem(
     messages: Map<Long, TdApi.Message>,
     senderIsMe: Boolean,
     isRead: Boolean,
+    settings: NeogramSettings,
     animatedContentScope: AnimatedContentScope,
     navController: NavController
 ) {
@@ -174,7 +175,7 @@ fun SharedTransitionScope.MinimalistMessageItem(
                 MessageForwardInfo(it, chats, users)
             }
             message.replyTo?.let { reply ->
-                ReplyContent(reply, senderIsMe, messages, users, chats, false)
+                ReplyContent(reply, senderIsMe, messages, users, chats, settings, false)
             }
             MessageContent(
                 animatedContentScope = animatedContentScope,
@@ -184,7 +185,8 @@ fun SharedTransitionScope.MinimalistMessageItem(
                 navController = navController,
                 senderColor = userAccentColor?.nameColor ?: Color.White,
                 fontSize = 13.5.sp,
-                senderIsMe = senderIsMe
+                senderIsMe = senderIsMe,
+                settings = settings
             )
             message.interactionInfo?.let {
                 MessageReactions(it)

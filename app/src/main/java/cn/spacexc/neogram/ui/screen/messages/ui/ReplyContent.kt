@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -30,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
-import cn.spacexc.neogram.settings.neogramSettings
+import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
@@ -44,10 +43,10 @@ fun ReplyContent(
     messages: Map<Long, TdApi.Message>,
     users: Map<Long, TdApi.User>,
     chats: Map<Long, TdApi.Chat>,
+    settings: NeogramSettings,
     shouldMessageBeDisplayedInBubble: Boolean,
 ) {
     val localDensity = LocalDensity.current
-    val settings by neogramSettings()
     var textHeight by remember { mutableStateOf(0.dp) }
     var senderName by remember { mutableStateOf("") }
     var senderColor by remember { mutableStateOf(Color.White) }
@@ -64,7 +63,11 @@ fun ReplyContent(
                 .padding(end = 4.dp)
                 .width(3.dp)
                 .height(textHeight)
-                .background((if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue).copy(alpha = 0.5f), CircleShape)
+                .background(
+                    (if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue).copy(
+                        alpha = 0.5f
+                    ), CircleShape
+                )
         )
         if (reply is TdApi.MessageReplyToMessage) {
             Column(modifier = Modifier.onSizeChanged {

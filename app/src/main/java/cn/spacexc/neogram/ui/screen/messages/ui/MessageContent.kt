@@ -11,11 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import cn.spacexc.neogram.settings.neogramSettings
+import cn.spacexc.neogram.proto.settings.ChatItemStyle
+import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.TgAnimation
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.component.TgRichText
@@ -25,9 +27,6 @@ import cn.spacexc.neogram.ui.component.TgVoiceNote
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.utils.textDescription
 import org.drinkless.tdlib.TdApi
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.text.style.TextAlign
-import cn.spacexc.neogram.proto.settings.ChatItemStyle
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -39,10 +38,9 @@ fun SharedTransitionScope.MessageContent(
     navController: NavController,
     senderColor: Color,
     fontSize: TextUnit = 14.sp,
+    settings: NeogramSettings,
     senderIsMe: Boolean
 ) {
-    val settings by neogramSettings()
-
     /**
      * MessageText.CONSTRUCTOR, //WIP
      * MessageAnimation.CONSTRUCTOR,

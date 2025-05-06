@@ -2,7 +2,6 @@ package cn.spacexc.neogram.ui.screen.messages.send
 
 import androidx.lifecycle.ViewModel
 import cn.spacexc.neogram.data.TdClient
-import cn.spacexc.neogram.utils.LogUtils
 import org.drinkless.tdlib.TdApi
 
 class SendMessageViewModel(
@@ -33,6 +32,32 @@ class SendMessageViewModel(
             content
         )
         TdClient.send(action)
+    }
+
+    fun updateTextMessage(
+        chatId: Long,
+        messageId: Long,
+        textContent: String,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
+    ) {
+        val content = TdApi.InputMessageText(
+            TdApi.FormattedText(textContent, arrayOf()),
+            null,
+            true
+        )
+        val action = TdApi.EditMessageText(
+            chatId,
+            messageId,
+            null,
+            content
+        )
+        TdClient.send(action, {
+            onSuccess()
+        }, {
+            onFailure()
+            it?.printStackTrace()
+        })
     }
 
     fun updateDraftMessage(textContent: String) {

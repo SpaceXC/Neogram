@@ -2,14 +2,13 @@ package cn.spacexc.neogram.settings
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
+import cn.spacexc.neogram.Application
 import cn.spacexc.neogram.proto.settings.NeogramSettings
 import com.google.protobuf.InvalidProtocolBufferException
 import java.io.InputStream
@@ -37,8 +36,13 @@ val Context.settingsDataStore: DataStore<NeogramSettings> by dataStore(
     serializer = SettingsSerializer
 )
 
-@Composable
-fun neogramSettings(): State<NeogramSettings> = LocalContext.current.settingsDataStore.data.collectAsState(NeogramSettings.getDefaultInstance())
+object NeogramSettings {
+    val data = Application.getApplication().settingsDataStore.data
+
+    @Composable
+    fun neogramSettings(): State<NeogramSettings> =
+        data.collectAsState(NeogramSettings.getDefaultInstance())
+}
 
 suspend fun Context.updateConfiguration(newConfiguration: NeogramSettings.() -> NeogramSettings) {
     settingsDataStore.updateData { currentConfig ->
