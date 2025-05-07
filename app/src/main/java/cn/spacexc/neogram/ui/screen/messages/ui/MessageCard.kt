@@ -30,7 +30,7 @@ import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.DraggableBox
-import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
+import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.bubble.BubbledMessageItem
 import cn.spacexc.neogram.ui.screen.messages.ui.minimalist.MinimalistMessageItem
 import cn.spacexc.neogram.utils.textDescription
@@ -50,11 +50,12 @@ fun SharedTransitionScope.MessageCard(
     isPreviousOneContinuous: Boolean,
     isNextOneContinuous: Boolean,
     messages: Map<Long, TdApi.Message>,
-    isRead: Boolean,
+    isRead: Boolean?,
     senderIsMe: Boolean,
     navController: NavController,
     settings: NeogramSettings,
     onVibrate: () -> Unit,
+    isActionEnabled: Boolean = true,
     onReplyMessage: (String, String) -> Unit
 ) {
     val localDensity = LocalDensity.current
@@ -86,21 +87,16 @@ fun SharedTransitionScope.MessageCard(
         }
     }
 
-    Box(modifier = modifier.clickVfx(onLongClick = {
-        val messageContent = (message.content as? TdApi.MessageText)
-        navController.navigate(
-            SendMessageScreen(
-                message.chatId,
-                "",
-                0,
-                "",
-                "",
-                message.id,
-                message.chatId,
-                messageContent?.text?.text
-            )
-        )
-    }), contentAlignment = CenterStart) {
+    Box(
+        modifier = modifier
+            .clickVfx(enabled = isActionEnabled, onLongClick = {
+                navController.navigate(
+                    MessageActionScreen(message.chatId, message.id)
+                )
+            })
+            .sharedElement(rememberSharedContentState(message.id), animatedContentScope),
+        contentAlignment = CenterStart
+    ) {
         var progress by remember { mutableFloatStateOf(0f) }
 
         Icon(
@@ -158,6 +154,7 @@ fun SharedTransitionScope.MessageCard(
 
             else -> {
                 DraggableBox(
+                    enabled = isActionEnabled,
                     modifier = Modifier.fillMaxWidth(),
                     50f,
                     onProgressChange = {

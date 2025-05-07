@@ -61,7 +61,7 @@ fun SharedTransitionScope.MinimalistMessageItem(
     users: Map<Long, TdApi.User>,
     messages: Map<Long, TdApi.Message>,
     senderIsMe: Boolean,
-    isRead: Boolean,
+    isRead: Boolean?,
     settings: NeogramSettings,
     animatedContentScope: AnimatedContentScope,
     navController: NavController
@@ -128,12 +128,14 @@ fun SharedTransitionScope.MinimalistMessageItem(
                         )
                         if (senderIsMe) {
                             if (message.sendingState == null) {
-                                Text(
-                                    if (isRead) "已读" else "未读",
-                                    color = Color.White,
-                                    fontSize = 10.sp,
-                                    fontFamily = miSans
-                                )
+                                if (isRead != null) {
+                                    Text(
+                                        if (isRead) "已读" else "未读",
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        fontFamily = miSans
+                                    )
+                                }
                             } else {
                                 Text(
                                     when (message.sendingState) {

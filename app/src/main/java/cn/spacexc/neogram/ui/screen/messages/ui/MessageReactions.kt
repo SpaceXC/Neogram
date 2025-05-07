@@ -5,21 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import org.drinkless.tdlib.TdApi
-import androidx.compose.runtime.getValue
-import cn.spacexc.neogram.ui.component.TgImage
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -47,7 +45,10 @@ fun ReactionBadge(reaction: TdApi.MessageReaction) {
             Text((reaction.type as TdApi.ReactionTypeEmoji).emoji, fontSize = 10.sp)
         }
         if (reaction.type is TdApi.ReactionTypeCustomEmoji) {
-            Text((reaction.type as TdApi.ReactionTypeEmoji).emoji, fontSize = 10.sp)
+            Text(
+                (reaction.type as TdApi.ReactionTypeCustomEmoji).customEmojiId.toString(),
+                fontSize = 10.sp
+            )
         }
 
         if (reaction.type is TdApi.ReactionTypePaid) {

@@ -22,6 +22,8 @@ import cn.spacexc.neogram.ui.screen.auth.AuthScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
 import cn.spacexc.neogram.ui.screen.image.ImageViewerScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
+import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
+import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionsScreen
 import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import cn.spacexc.neogram.ui.screen.splash.SplashScreen
@@ -112,6 +114,16 @@ class MainActivity : ComponentActivity() {
                             messageId,
                             this,
                             navController
+                        )
+                    }
+
+                    composable<MessageActionScreen> {
+                        val (chatId, messageId) = it.toRoute<MessageActionScreen>()
+                        MessageActionsScreen(
+                            chatId,
+                            messageId,
+                            navController,
+                            this
                         )
                     }
 

@@ -2,6 +2,8 @@ package cn.spacexc.neogram.ui.screen.messages.send
 
 import androidx.lifecycle.ViewModel
 import cn.spacexc.neogram.data.TdClient
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 class SendMessageViewModel(
@@ -53,10 +55,14 @@ class SendMessageViewModel(
             content
         )
         TdClient.send(action, {
-            onSuccess()
+            MainScope().launch {
+                onSuccess()
+            }
         }, {
-            onFailure()
-            it?.printStackTrace()
+            MainScope().launch {
+                onFailure()
+                it?.printStackTrace()
+            }
         })
     }
 
