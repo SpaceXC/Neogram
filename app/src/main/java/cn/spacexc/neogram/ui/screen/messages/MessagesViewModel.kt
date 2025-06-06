@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.spacexc.neogram.Application
@@ -130,6 +129,10 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
 
     fun viewMessage(messageId: Long) {
         TdClient.send(TdApi.ViewMessages(chatId, arrayOf(messageId).toLongArray(), null, false))
+    }
+
+    fun deleteMessage(messageId: Long) {
+        TdClient.send(TdApi.DeleteMessages(chatId, arrayOf(messageId).toLongArray(), true))
     }
 
     override fun onCleared() {

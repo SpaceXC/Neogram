@@ -52,6 +52,7 @@ fun SharedTransitionScope.MessageActionsScreen(
             viewModel.currentMessage?.let { message ->
                 val senderIsMe =
                     message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
+                val isRead = message.sendingState
                 MessageCard(
                     animatedContentScope = animatedContentScope,
                     isGroupChat = false,//currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),

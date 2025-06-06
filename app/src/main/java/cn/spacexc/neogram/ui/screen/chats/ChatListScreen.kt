@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,11 +54,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -95,7 +93,6 @@ import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.getChatActionDescription
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.telegram.ui.component.clickVfx
-import cn.spacexc.telegram.ui.component.lazyRotateInput
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
@@ -114,16 +111,15 @@ fun SharedTransitionScope.ChatListScreen(
     navController: NavController,
     viewModel: ChatListViewModel = viewModel()
 ) {
-    val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val chatList by viewModel.chatList.collectAsState(emptyList())
     val folders by FoldersRepository.chatFolderLists.collectAsState()
+    val foldersInfo by FoldersRepository.chatFoldersInfo.collectAsState()
     val chats by ChatListRepository.chats.collectAsState()
     val users by UserRepository.users.collectAsState()
+    val localDensity = LocalDensity.current
 
     var isShowingMenu by remember { mutableStateOf(false) }
-
-    val focusRequester = remember { FocusRequester() }
 
 
     LaunchedEffect(folders) {
@@ -142,10 +138,6 @@ fun SharedTransitionScope.ChatListScreen(
                 }
             }
         }
-    }
-
-    LaunchedEffect(remember { derivedStateOf { scrollState.firstVisibleItemScrollOffset } }) {
-        LogUtils.info("offset", "${scrollState.firstVisibleItemScrollOffset}")
     }
 
     TitleFrame(
@@ -175,7 +167,7 @@ fun SharedTransitionScope.ChatListScreen(
             isShowingMenu = !isShowingMenu
         },
         onTitleClicked = {
-            scope.launch { scrollState.animateScrollToItem(0) }
+            scope.launch { viewModel.lazyScrollState.animateScrollToItem(0) }
         }
     ) { topPadding ->
         AnimatedContent(isShowingMenu, transitionSpec = {
@@ -207,51 +199,60 @@ fun SharedTransitionScope.ChatListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .lazyRotateInput(focusRequester, scrollState),
+                        .fillMaxSize(),
                     contentPadding = PaddingValues(
                         top = topPadding,
                         bottom = 8.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    state = scrollState
+                    //state = viewModel.lazyScrollState
                 ) {
-                    item {
-                        ChatFolders(viewModel.currentSelectedFolderId) {
-                            viewModel.currentSelectedFolderId = it
-                        }
-                    }
-
-                    displayedChatList.forEach { chat ->
-                        item(key = chat.id) {
-                            ChatListItem(
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .animateItem()
-                                    .clickVfx {
-                                        navController.navigate(MessagesScreen(chat.id, chat.title))
-                                    },
-                                chat = chat,
-                                chats = chats,
-                                users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
-                                animatedContentScope = animatedContentScope,
-                            )
+                    (listOf(-1) + displayedChatList.indices).forEach { index ->
+                        if (index == -1) {
+                            /*item {
+                                *//*ChatFolders(localDensity, foldersInfo, viewModel.currentSelectedFolderId) {
+                                    viewModel.currentSelectedFolderId = it
+                                }*//*
+                            }*/
+                        } else {
+                            val chat = displayedChatList[index]
+                            item(key = chat.id) {
+                                ChatListItem(
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp)
+                                        .animateItem()
+                                        .clickVfx {
+                                            navController.navigate(
+                                                MessagesScreen(
+                                                    chat.id,
+                                                    chat.title
+                                                )
+                                            )
+                                        },
+                                    chat = chat,
+                                    chats = chats,
+                                    users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
+                                    animatedContentScope = animatedContentScope,
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        ChatListRepository.getMainChatList()
+        LaunchedEffect(Unit) {
+            ChatListRepository.getMainChatList()
+        }
     }
 }
 
 @Composable
-fun ChatFolders(currentFolder: Int, onSelected: (Int) -> Unit) {
-    val folders by FoldersRepository.chatFoldersInfo.collectAsState()
-    val localDensity = LocalDensity.current
+fun ChatFolders(
+    localDensity: Density,
+    folders: List<TdApi.ChatFolderInfo>,
+    currentFolder: Int,
+    onSelected: (Int) -> Unit
+) {
     Row(
         modifier = Modifier
             .horizontalScroll(
@@ -382,8 +383,8 @@ fun SharedTransitionScope.ChatListItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier
                     .weight(1f)
-                    .onSizeChanged {
-                        textHeight = with(localDensity) { it.height.toDp() }
+                    .onGloballyPositioned {
+                        textHeight = with(localDensity) { it.size.height.toDp() }
                     }
                 ) {
                     Text(

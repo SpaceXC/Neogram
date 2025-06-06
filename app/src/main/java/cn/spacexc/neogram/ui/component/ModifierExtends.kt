@@ -160,7 +160,7 @@ fun Modifier.clickAlpha(
             targetValue = if (isPressed) 0.8f else 1f,
             animationSpec = tween(durationMillis = 150), label = ""
         )
-        scale(sizePercent).pointerInput(Unit) {
+        alpha(sizePercent).pointerInput(Unit) {
             detectTapGestures(
                 onTap = { onClick() },
                 onLongPress = {

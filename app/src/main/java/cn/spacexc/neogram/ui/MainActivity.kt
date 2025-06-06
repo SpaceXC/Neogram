@@ -18,7 +18,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import cn.spacexc.neogram.data.TdClient
+import cn.spacexc.neogram.data.call.CallHandler
 import cn.spacexc.neogram.ui.screen.auth.AuthScreen
+import cn.spacexc.neogram.ui.screen.call.VoiceCallScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
 import cn.spacexc.neogram.ui.screen.image.ImageViewerScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
@@ -49,7 +51,8 @@ class MainActivity : ComponentActivity() {
             }
 
             SharedTransitionLayout {
-                NavHost(navController,
+                NavHost(
+                    navController,
                     startDestination = SplashScreen,
                     enterTransition = {
                         slideInHorizontally(tween(400, 0)) { it } + fadeIn(tween(400))
@@ -130,6 +133,19 @@ class MainActivity : ComponentActivity() {
                     composable<UITestScreen> {
                         UITestScreen()
                     }
+
+                    composable<VoiceCallScreen> {
+                        val (id) = it.toRoute<VoiceCallScreen>()
+                        VoiceCallScreen(navController, id)
+                    }
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                CallHandler.currentCallId.collect {
+                    if (it == 0) navController.navigateUp() else navController.navigate(
+                        VoiceCallScreen(it)
+                    )
                 }
             }
         }

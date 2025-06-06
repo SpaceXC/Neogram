@@ -15,7 +15,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.IntSize
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.ui.screen.image.ImageViewerScreen
@@ -74,7 +73,8 @@ fun SharedTransitionScope.TgImage(
                     LogUtils.info("Image", "Clicked")
                     navController?.navigate(ImageViewerScreen(localPath, id))
                 }),
-            placeholderEnabled = false
+            placeholderEnabled = false,
+            loadOriginal = true
         )
     }
 }

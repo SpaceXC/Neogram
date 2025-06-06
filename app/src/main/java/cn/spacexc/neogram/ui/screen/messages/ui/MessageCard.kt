@@ -30,12 +30,10 @@ import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.DraggableBox
-import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.bubble.BubbledMessageItem
 import cn.spacexc.neogram.ui.screen.messages.ui.minimalist.MinimalistMessageItem
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
-import cn.spacexc.telegram.ui.component.clickVfx
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
@@ -89,11 +87,6 @@ fun SharedTransitionScope.MessageCard(
 
     Box(
         modifier = modifier
-            .clickVfx(enabled = isActionEnabled, onLongClick = {
-                navController.navigate(
-                    MessageActionScreen(message.chatId, message.id)
-                )
-            })
             .sharedElement(rememberSharedContentState(message.id), animatedContentScope),
         contentAlignment = CenterStart
     ) {
@@ -146,8 +139,9 @@ fun SharedTransitionScope.MessageCard(
             is TdApi.MessageChatAddMembers -> {
                 MessageNotification(
                     "${
-                        (message.content as TdApi.MessageChatAddMembers).memberUserIds.map { "${users[it]?.username}" }
-                            .joinToString { ", " }
+                        (message.content as TdApi.MessageChatAddMembers).memberUserIds.joinToString(
+                            ", "
+                        ) { "${users[it]?.username}" }
                     }加入了群聊"
                 )
             }

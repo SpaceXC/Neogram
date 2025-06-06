@@ -9,17 +9,20 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.draganddrop.dragAndDropSource
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -58,7 +61,11 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
+import cn.spacexc.neogram.ui.component.NeoIconButton
+import cn.spacexc.neogram.ui.icons.Back
 import cn.spacexc.neogram.ui.icons.ChatBubble
+import cn.spacexc.neogram.ui.icons.Delete
+import cn.spacexc.neogram.ui.icons.Edit
 import cn.spacexc.neogram.ui.icons.Microphone
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
@@ -69,6 +76,7 @@ import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.getChatActionDescription
 import cn.spacexc.telegram.ui.component.clickAlpha
+import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
@@ -101,11 +109,12 @@ fun SharedTransitionScope.MessagesScreen(
     var lastReadInboxMessage = remember { currentChat?.lastReadInboxMessageId ?: 0L }
     var scrolledToLastReadInboxMessage by remember { mutableStateOf(false) }
     val viewModel = viewModel { MessagesViewModel(chatId, lastReadInboxMessage) }
-    val microphonePermissionRequester = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            viewModel.recordAudio()
+    val microphonePermissionRequester =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                viewModel.recordAudio()
+            }
         }
-    }
     val settings by neogramSettings()
     var isRecordingAudio by remember { mutableStateOf(false) }
 
@@ -141,7 +150,11 @@ fun SharedTransitionScope.MessagesScreen(
         }
     }
 
-    val chatState = action.getChatActionDescription(users.map { Pair(it.key, it.value.tgUser) }.toMap(), chats, currentChat?.type)
+    val chatState = action.getChatActionDescription(
+        users.map { Pair(it.key, it.value.tgUser) }.toMap(),
+        chats,
+        currentChat?.type
+    )
 
     val inputValue = navController.currentBackStackEntry
         ?.savedStateHandle
@@ -171,6 +184,8 @@ fun SharedTransitionScope.MessagesScreen(
             ) {
                 viewModel.messages.entries.toList().forEachIndexed { index, (messageId, message) ->
                     item(key = messageId) {
+                        var isInActionMode by remember { mutableStateOf(false) }
+
                         //region val isNextOneContinuous
                         val isNextOneContinuous =
                             if (index == 0) false   //上一条消息是连续的吗？i.e. 是同一个人发的且相隔时间不超过5分钟且在同一天吗吗？
@@ -211,25 +226,72 @@ fun SharedTransitionScope.MessagesScreen(
                         LaunchedEffect(Unit) {
                             viewModel.viewMessage(messageId)
                         }
-
                         val senderIsMe =
                             message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
 
-                        /*if (messageId == lastReadInboxMessage && index != 0) {
-                            *//*Text(
-                                "上次看到",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                color = Color.White,
-                                fontFamily = miSans
-                            )*//*
-                        }*/
+                        AnimatedVisibility(
+                            isInActionMode,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                                if (senderIsMe) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                    ) {
+                                        NeoIconButton(
+                                            icon = NeogramIcons.Edit,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickVfx {
+                                                    navController.navigate(
+                                                        SendMessageScreen(
+                                                            chatId,
+                                                            inputValue?.value ?: "",
+                                                            0,
+                                                            "",
+                                                            "",
+                                                            message.id,
+                                                            (message.content as? TdApi.MessageText)?.text?.text
+                                                                ?: ""
+                                                        )
+                                                    )
+                                                }
+                                        )
+                                        NeoIconButton(
+                                            icon = NeogramIcons.Delete,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickVfx {
+                                                    viewModel.deleteMessage(messageId)
+                                                }
+                                        )
+                                    }
+                                }
+                                NeoIconButton(
+                                    icon = NeogramIcons.Back,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickVfx {
+                                            isInActionMode = false
+                                        }
+                                )
+                            }
+                        }
                         MessageCard(
                             animatedContentScope = animatedContentScope,
                             isGroupChat = currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
                             users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
                             chats = chats,
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier
+                                .animateItem()
+                                .clickAlpha(enabled = !isInActionMode, onLongClick = {
+                                    isInActionMode = true
+                                }),
                             message = message,
                             isPreviousOneContinuous = isPreviousOneContinuous,
                             isNextOneContinuous = isNextOneContinuous,
@@ -265,8 +327,8 @@ fun SharedTransitionScope.MessagesScreen(
             //region voice recording indicator
             AnimatedVisibility(
                 isRecordingAudio,
-                modifier = Modifier.fillMaxSize(),
-                enter = fadeIn() + slideInVertically { it / 2 },
+                modifier = Modifier.animateContentSize(),
+                enter = fadeIn() + slideInVertically { -it / 2 },
                 exit = fadeOut() + slideOutVertically { it / 2 }
             ) {
                 Box(
@@ -352,8 +414,8 @@ fun SharedTransitionScope.MessagesScreen(
                         )
                         .dragAndDropSource(drawDragDecoration = {
 
-                        }) {
-                            detectTapGestures(
+                        }) { offset ->
+                            /*detectTapGestures(
                                 onPress = { offset ->
                                     scope.launch {
                                         startTransfer(
@@ -373,6 +435,12 @@ fun SharedTransitionScope.MessagesScreen(
                                         //isRecordingAudio = false
                                     }
                                 }
+                            )*/
+                            DragAndDropTransferData(
+                                clipData = ClipData.newPlainText(
+                                    "text",
+                                    "Drag me!"
+                                )
                             )
                         }
                         .onSizeChanged { barHeight = with(localDensity) { it.height.toDp() } }

@@ -46,7 +46,6 @@ data class SendMessageScreen(
     val replyMessageSenderName: String = "",
     val replyMessageContent: String = "",
     val messageIdToEdit: Long? = null,
-    val messageChatId: Long = 0,
     val messageContentToEdit: String? = null
 )
 
@@ -62,7 +61,7 @@ fun SendMessageScreen(
         navController.previousBackStackEntry
             ?.savedStateHandle
             ?.set("inputValue", inputValue)
-        viewModel.updateDraftMessage(inputValue)
+        //viewModel.updateDraftMessage(inputValue)
         navController.popBackStack()
     }, isLoading = isLoading) {
         Column(modifier = Modifier
@@ -124,7 +123,7 @@ fun SendMessageScreen(
                 if (props.messageIdToEdit != null) {
                     isLoading = true
                     viewModel.updateTextMessage(
-                        props.messageChatId,
+                        props.chatId,
                         props.messageIdToEdit,
                         inputValue,
                         {

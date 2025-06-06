@@ -1,6 +1,7 @@
 package cn.spacexc.neogram.data
 
 import cn.spacexc.neogram.data.auth.AuthRepository.authHandler
+import cn.spacexc.neogram.data.call.CallHandler.callHandler
 import cn.spacexc.neogram.data.chat.ChatListRepository.chatListHandler
 import cn.spacexc.neogram.data.color.AccentColorRepository.accentColorsHandler
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository.connectionStateHandler
@@ -28,6 +29,7 @@ object TdClient {
                 accentColorsHandler()
                 notificationHandler()
                 foldersHandler()
+                callHandler()
             }
         }
     }
