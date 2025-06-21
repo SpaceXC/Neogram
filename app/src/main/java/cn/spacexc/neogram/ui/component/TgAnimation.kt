@@ -19,7 +19,7 @@ fun SharedTransitionScope.TgAnimation(
 ) {
     when (animation.mimeType) {
         "video/mp4" -> {
-            TgVideo(animation.animation, modifier)
+            TgVideo(animation.animation, modifier, navController, autoplay = true)
         }
 
         "image/gif" -> {

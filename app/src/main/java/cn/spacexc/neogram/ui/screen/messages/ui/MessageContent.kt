@@ -212,7 +212,8 @@ fun SharedTransitionScope.MessageContent(
             TgVideo(
                 content.video.video, modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .aspectRatio(aspectRatio)
+                    .aspectRatio(aspectRatio),
+                navController
             )
             if (content.caption.text.isNotEmpty()) {
                 TgRichText(

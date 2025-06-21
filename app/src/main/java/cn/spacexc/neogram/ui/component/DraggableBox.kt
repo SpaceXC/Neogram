@@ -1,7 +1,7 @@
 package cn.spacexc.neogram.ui.component
 
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -22,8 +22,8 @@ import kotlin.math.pow
 
 @Composable
 fun DraggableBox(
-    enabled: Boolean = true,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     threshold: Float,
     onProgressChange: (Float) -> Unit,
     triggerThreshold: Float,
@@ -65,7 +65,7 @@ fun DraggableBox(
                             animate(
                                 initialValue = currentOffset,
                                 targetValue = 0f,
-                                animationSpec = spring(dampingRatio = 0.6f, stiffness = 1300f),
+                                animationSpec = tween(250),
                             ) { value, _ ->
                                 currentOffset = value
                             }

@@ -11,6 +11,9 @@ import androidx.datastore.dataStore
 import cn.spacexc.neogram.Application
 import cn.spacexc.neogram.proto.settings.NeogramSettings
 import com.google.protobuf.InvalidProtocolBufferException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -37,11 +40,20 @@ val Context.settingsDataStore: DataStore<NeogramSettings> by dataStore(
 )
 
 object NeogramSettings {
-    val data = Application.getApplication().settingsDataStore.data
+    val dataFlow = Application.getApplication().settingsDataStore.data
+    var data: NeogramSettings = NeogramSettings.getDefaultInstance()
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            Application.getApplication().settingsDataStore.data.collect {
+                data = it
+            }
+        }
+    }
 
     @Composable
     fun neogramSettings(): State<NeogramSettings> =
-        data.collectAsState(NeogramSettings.getDefaultInstance())
+        dataFlow.collectAsState(NeogramSettings.getDefaultInstance())
 }
 
 suspend fun Context.updateConfiguration(newConfiguration: NeogramSettings.() -> NeogramSettings) {

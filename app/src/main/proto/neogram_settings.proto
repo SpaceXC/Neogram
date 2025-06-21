@@ -10,4 +10,5 @@ enum ChatItemStyle {
 
 message NeogramSettings {
   ChatItemStyle chatItemStyle = 1;
+  bool debug = 2;
 }

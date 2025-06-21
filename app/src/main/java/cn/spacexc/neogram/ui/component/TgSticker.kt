@@ -1,28 +1,16 @@
 package cn.spacexc.neogram.ui.component
 
-import android.media.MediaPlayer
-import android.view.SurfaceView
-import android.view.TextureView
-import android.widget.VideoView
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
@@ -54,7 +42,7 @@ fun SharedTransitionScope.TgSticker(
         }
 
         is TdApi.StickerFormatWebm -> {
-            TgVideo(sticker.sticker, modifier)
+            TgVideo(sticker.sticker, modifier, navController, autoplay = true)
         }
 
         is TdApi.StickerFormatTgs -> {

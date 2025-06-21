@@ -1,7 +1,6 @@
 package cn.spacexc.neogram.ui.screen.messages
 
 import android.Manifest
-import android.content.ClipData
 import android.content.ClipDescription
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,8 +17,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.draganddrop.dragAndDropSource
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +32,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,16 +49,21 @@ import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
@@ -68,12 +74,15 @@ import cn.spacexc.neogram.ui.icons.Delete
 import cn.spacexc.neogram.ui.icons.Edit
 import cn.spacexc.neogram.ui.icons.Microphone
 import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.screen.forward.ForwardMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
+import cn.spacexc.neogram.ui.screen.messages.ui.isDisplayedAsSmallCard
 import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
+import cn.spacexc.neogram.utils.ToastUtils
 import cn.spacexc.neogram.utils.getChatActionDescription
 import cn.spacexc.telegram.ui.component.clickAlpha
 import cn.spacexc.telegram.ui.component.clickVfx
@@ -83,9 +92,7 @@ import org.drinkless.tdlib.TdApi
 import kotlin.math.absoluteValue
 
 @Serializable
-data class MessagesScreen(val chatId: Long, val title: String)
-
-enum class MessageSwipeToReplyState { Resting, Replying }
+data class MessagesScreen(val chatId: Long, val title: String, val haveUnreadMessages: Boolean)
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -93,6 +100,7 @@ fun SharedTransitionScope.MessagesScreen(
     animatedContentScope: AnimatedContentScope,
     navController: NavController,
     chatId: Long,
+    haveUnreadMessages: Boolean,
     title: String
 ) {
     //region variables
@@ -118,6 +126,11 @@ fun SharedTransitionScope.MessagesScreen(
     val settings by neogramSettings()
     var isRecordingAudio by remember { mutableStateOf(false) }
 
+    var voiceButtonPosition by remember { mutableStateOf(Offset.Zero) }
+    var cancelAreaPosition by remember { mutableStateOf(Offset.Zero) }
+    var cancelAreaSize by remember { mutableStateOf(IntSize.Zero) }
+    var currentDragOffset by remember { mutableStateOf(Offset.Zero) }
+
     LaunchedEffect(isRecordingAudio) {
         if (isRecordingAudio) {
             microphonePermissionRequester.launch(Manifest.permission.RECORD_AUDIO)
@@ -130,23 +143,25 @@ fun SharedTransitionScope.MessagesScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.getMessages(scope)
+        viewModel.initMessages(haveUnreadMessages)//getMessages(scope)
     }
 
     LaunchedEffect(viewModel.messages) {
-        if (viewModel.messages.isNotEmpty()) {
-            if (viewModel.messages.entries.first().key != viewModel.prevFirstMessageId) {
-                val message = viewModel.messages.entries.first().value
-                viewModel.prevFirstMessageId = message.id
-                val messageSenderIsMe =
-                    message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
-                if (viewModel.lazyColumnState.firstVisibleItemIndex <= 1 || messageSenderIsMe) {
-                    scope.launch {
-                        viewModel.lazyColumnState.animateScrollToItem(0)
+        if (viewModel.loadCompleted) {
+            if (viewModel.messages.isNotEmpty()) {
+                if (viewModel.messages.entries.first().key != viewModel.prevFirstMessageId) {
+                    val message = viewModel.messages.entries.first().value
+                    viewModel.prevFirstMessageId = message.id
+                    val messageSenderIsMe =
+                        message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
+                    if (viewModel.lazyColumnState.firstVisibleItemIndex <= 1 || messageSenderIsMe) {
+                        scope.launch {
+                            viewModel.lazyColumnState.animateScrollToItem(0)
+                        }
                     }
                 }
+                viewModel.prevFirstMessageId = viewModel.messages.entries.first().key
             }
-            viewModel.prevFirstMessageId = viewModel.messages.entries.first().key
         }
     }
 
@@ -192,7 +207,7 @@ fun SharedTransitionScope.MessagesScreen(
                             else {
                                 val nextItem = viewModel.messages.entries.toList()[index - 1]
                                 if ((message.date - nextItem.value.date).absoluteValue > 5 * 60) false  //时间超过5分钟
-
+                                else if (nextItem.value.isDisplayedAsSmallCard()) false //是小卡片（指的是xxx加入了群聊那种
                                 else if (nextItem.value.senderId.constructor != message.senderId.constructor) {
                                     false   //不是同一类(chat/user)人发的
                                 } else {
@@ -209,15 +224,16 @@ fun SharedTransitionScope.MessagesScreen(
                         val isPreviousOneContinuous =   //同上
                             if (index == viewModel.messages.entries.size - 1) false
                             else {
-                                val nextItem = viewModel.messages.entries.toList()[index + 1]
-                                if ((message.date - nextItem.value.date).absoluteValue > 5 * 60) false
-                                else if (nextItem.value.senderId.constructor != message.senderId.constructor) {
+                                val previousItem = viewModel.messages.entries.toList()[index + 1]
+                                if ((message.date - previousItem.value.date).absoluteValue > 5 * 60) false
+                                else if (previousItem.value.isDisplayedAsSmallCard()) false
+                                else if (previousItem.value.senderId.constructor != message.senderId.constructor) {
                                     false
                                 } else {
                                     if (message.senderId is TdApi.MessageSenderUser) {
-                                        (message.senderId as TdApi.MessageSenderUser).userId == (nextItem.value.senderId as TdApi.MessageSenderUser).userId
+                                        (message.senderId as TdApi.MessageSenderUser).userId == (previousItem.value.senderId as TdApi.MessageSenderUser).userId
                                     } else {
-                                        (message.senderId as TdApi.MessageSenderChat).chatId == (nextItem.value.senderId as TdApi.MessageSenderChat).chatId
+                                        (message.senderId as TdApi.MessageSenderChat).chatId == (previousItem.value.senderId as TdApi.MessageSenderChat).chatId
                                     }
                                 }
                             }
@@ -272,14 +288,71 @@ fun SharedTransitionScope.MessagesScreen(
                                         )
                                     }
                                 }
-                                NeoIconButton(
-                                    icon = NeogramIcons.Back,
+                                Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickVfx {
-                                            isInActionMode = false
-                                        }
-                                )
+                                        .padding(bottom = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    NeoIconButton(
+                                        icon = Icons.Outlined.Bookmarks,
+                                        iconModifier = Modifier.scale(0.7f),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickVfx {
+                                                //Save Message
+                                                scope.launch {
+                                                    TdClient.send(
+                                                        TdApi.ForwardMessages(
+                                                            ChatListRepository.getSavedMessageChatId(),
+                                                            message.messageThreadId,
+                                                            message.chatId,
+                                                            longArrayOf(message.id),
+                                                            null,
+                                                            false,
+                                                            false
+                                                        ),
+                                                        {
+                                                            if (it is TdApi.Messages) {
+                                                                ToastUtils.toast("保存成功")
+                                                            }
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                    )
+                                    NeoIconButton(
+                                        icon = NeogramIcons.Back,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickVfx {
+                                                navController.navigate(
+                                                    ForwardMessageScreen(
+                                                        message.messageThreadId,
+                                                        message.chatId,
+                                                        message.id
+                                                    )
+                                                )
+                                            }
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    NeoIconButton(
+                                        icon = NeogramIcons.Back,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickVfx {
+                                                isInActionMode = false
+                                            }
+                                    )
+                                }
                             }
                         }
                         MessageCard(
@@ -328,7 +401,7 @@ fun SharedTransitionScope.MessagesScreen(
             AnimatedVisibility(
                 isRecordingAudio,
                 modifier = Modifier.animateContentSize(),
-                enter = fadeIn() + slideInVertically { -it / 2 },
+                enter = fadeIn() + slideInVertically { it / 2 },
                 exit = fadeOut() + slideOutVertically { it / 2 }
             ) {
                 Box(
@@ -353,27 +426,15 @@ fun SharedTransitionScope.MessagesScreen(
                             }
                         )
                 ) {
-                    Box(modifier = Modifier
-                        .size(100.dp)
-                        .background(Color.Red)
-                        .align(Alignment.Center)
-                        .dragAndDropTarget(
-                            shouldStartDragAndDrop = { event ->
-                                event
-                                    .mimeTypes()
-                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                            },
-                            target = remember {
-                                object : DragAndDropTarget {
-                                    override fun onDrop(event: DragAndDropEvent): Boolean {
-                                        isRecordingAudio = false
-                                        viewModel.stopRecording(false)
-                                        LogUtils.info("AudioRecord", "Canceled")
-                                        return true
-                                    }
-                                }
-                            }
-                        ))
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Color.Red)
+                            .align(Alignment.Center)
+                            .onGloballyPositioned {
+                                cancelAreaSize = it.size
+                                cancelAreaPosition = it.localToScreen(Offset.Zero)
+                            })
                 }
             }
             //endregion
@@ -391,56 +452,36 @@ fun SharedTransitionScope.MessagesScreen(
                 var barHeight by remember { mutableStateOf(0.dp) }
                 Box(
                     modifier = Modifier
-                        .dragAndDropTarget(
-                            shouldStartDragAndDrop = { event ->
-                                event
-                                    .mimeTypes()
-                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                            },
-                            target = remember {
-                                object : DragAndDropTarget {
-                                    override fun onDrop(event: DragAndDropEvent): Boolean {
-                                        return true
-                                    }
-
-                                    override fun onEnded(event: DragAndDropEvent) {
-                                        super.onEnded(event)
-                                        isRecordingAudio = false
-                                        viewModel.stopRecording(true)
-                                        LogUtils.info("AudioRecord", "Ended")
-                                    }
-                                }
-                            }
-                        )
-                        .dragAndDropSource(drawDragDecoration = {
-
-                        }) { offset ->
-                            /*detectTapGestures(
-                                onPress = { offset ->
-                                    scope.launch {
-                                        startTransfer(
-                                            transferData = DragAndDropTransferData(
-                                                clipData = ClipData.newPlainText(
-                                                    "text",
-                                                    "Drag me!"
-                                                )
-                                            )
-                                        )
-                                    }
+                        .onGloballyPositioned {
+                            voiceButtonPosition = it.localToScreen(Offset.Zero)
+                        }
+                        .pointerInput(Unit) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { offset ->
                                     isRecordingAudio = true
-                                    try {
-                                        awaitRelease()
-                                        //isRecordingAudio = false
-                                    } finally {
-                                        //isRecordingAudio = false
-                                    }
+                                    viewModel.recordAudio()
+                                    currentDragOffset = offset
+                                },
+                                onDrag = { change, dragAmount ->
+                                    currentDragOffset += dragAmount
+
+                                },
+                                onDragEnd = {
+                                    isRecordingAudio = false
+                                    LogUtils.info("AudioRecording", "$currentDragOffset")
+
+
+                                    val isInCancelArea =
+                                        (currentDragOffset + voiceButtonPosition) within (cancelAreaPosition plus cancelAreaSize)
+
+                                    LogUtils.info("AudioRecording", "$isInCancelArea")
+
+                                    viewModel.stopRecording(!isInCancelArea)
+
+                                },
+                                onDragCancel = {
+
                                 }
-                            )*/
-                            DragAndDropTransferData(
-                                clipData = ClipData.newPlainText(
-                                    "text",
-                                    "Drag me!"
-                                )
                             )
                         }
                         .onSizeChanged { barHeight = with(localDensity) { it.height.toDp() } }
@@ -515,4 +556,13 @@ fun SharedTransitionScope.MessagesScreen(
             }*/
         }
     }
+}
+
+infix fun Offset.within(range: Pair<Offset, Offset>): Boolean {
+    if (range.first.x > range.second.x || range.first.y > range.second.y) throw RuntimeException("Range $range illegal")
+    return x in range.first.x..range.second.x && y in range.first.y..range.second.y
+}
+
+infix fun Offset.plus(size: IntSize): Pair<Offset, Offset> {
+    return Pair(this, Offset(this.x + size.width, this.y + size.height))
 }

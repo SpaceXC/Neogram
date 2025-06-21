@@ -16,15 +16,20 @@ import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.message.MessageRepository
 import cn.spacexc.neogram.ui.screen.messages.audio.AndroidAudioRecorder
 import cn.spacexc.neogram.utils.LogUtils
+import cn.spacexc.neogram.utils.ToastUtils
 import cn.spacexc.neogram.utils.deepCopy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.drinkless.tdlib.TdApi
 import java.io.File
 
-class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessageId: Long) : ViewModel() {
+const val TAG_UNREAD_FROM = -1L
+
+class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessageId: Long) :
+    ViewModel() {
     val application = Application.getApplication()
 
     val mutex = Mutex()
@@ -111,8 +116,10 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                 LogUtils.info("getMessages", "$it")
                 if (it is TdApi.Messages) {
                     val messageList = it.messages.toList()
-                    messages += messageList.map { Pair(it.id, it) }.toMap()
+                    messages += messageList.associate { Pair(it.id, it) }
                     lastMessageId = messageList.last().id
+
+                    //检查有没有加载到最新未读
                     if (!messages.keys.contains(lastReadInboxMessageId) && lastReadInboxMessageId != 0L) {
                         viewModelScope.launch {
                             getMessages(scope)
@@ -122,8 +129,63 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                             loadCompleted = true
                         }
                     }
+
                 }
             })
+        }
+    }
+
+    suspend fun initMessages(haveUnreadMessages: Boolean) {
+        mutex.withLock {
+            val messagesFromUnread = TdClient.sendAsync<TdApi.Messages>(
+                TdApi.GetChatHistory(
+                    chatId,
+                    if (haveUnreadMessages) lastReadInboxMessageId else 0,
+                    0,
+                    20,
+                    false
+                )
+            )
+            if (messagesFromUnread == null) return
+            val messageListFromUnreadMessage =
+                messagesFromUnread.messages.toList().associate { Pair(it.id, it) }
+            messages = messageListFromUnreadMessage
+            LogUtils.info("initMessages", "Loaded old messages")
+
+            delay(100)
+            if (haveUnreadMessages) {
+                LogUtils.info("initMessages", "Loading new messages")
+                val newMessagesMap = emptyMap<Long, TdApi.Message>().toMutableMap()
+                var finishedLoading = false
+                var lastLoadedMessageId = 0L
+                while (!finishedLoading) {
+                    val newMessages = TdClient.sendAsync<TdApi.Messages>(
+                        TdApi.GetChatHistory(
+                            chatId,
+                            lastLoadedMessageId,
+                            0,
+                            20,
+                            false
+                        )
+                    )
+                    LogUtils.info("initMessages", "Loaded part size ${newMessages?.messages?.size}")
+                    if (newMessages == null) continue
+                    var newMessagesMapPart =
+                        newMessages.messages.toList().associate { Pair(it.id, it) }
+                    LogUtils.info(
+                        "initMessages",
+                        "Have reached $lastReadInboxMessageId? ${
+                            newMessagesMapPart.containsKey(lastReadInboxMessageId)
+                        }"
+                    )
+                    finishedLoading =
+                        newMessagesMapPart.containsKey(lastReadInboxMessageId)    //加载到了！
+                    lastLoadedMessageId = newMessagesMapPart.keys.last()
+                    newMessagesMap += newMessagesMapPart
+                }
+                messages = newMessagesMap + messages
+                loadCompleted = true
+            }
         }
     }
 
@@ -152,28 +214,35 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
         audioRecorder.start(file)
     }
 
+    /**
+     * @param sendMessage 是否发出信息（i.e. 是因为真的要发了还是因为取消了才停止录制的
+     */
     fun stopRecording(sendMessage: Boolean) {
         if (currentFile == null) return
         audioRecorder.stop()
         markSelfAsNotRecording()
         LogUtils.info("AudioRecord", "RecordCompleted ${currentFile?.path}")
         if (sendMessage) {
-            val content = TdApi.InputMessageVoiceNote(
-                TdApi.InputFileLocal(currentFile?.path),
-                (System.currentTimeMillis() - startTime).toInt() / 1000,
-                emptyArray<Byte>().toByteArray(),
-                null,
-                null
-            )
-            val action = TdApi.SendMessage(
-                chatId,
-                0,
-                null,
-                null,
-                null,
-                content
-            )
-            TdClient.send(action)
+            if ((System.currentTimeMillis() - startTime) < 1000) {
+                ToastUtils.toast("录制时间太短了吧...")
+            } else {
+                val content = TdApi.InputMessageVoiceNote(
+                    TdApi.InputFileLocal(currentFile?.path),
+                    (System.currentTimeMillis() - startTime).toInt() / 1000,
+                    emptyArray<Byte>().toByteArray(),
+                    null,
+                    null
+                )
+                val action = TdApi.SendMessage(
+                    chatId,
+                    0,
+                    null,
+                    null,
+                    null,
+                    content
+                )
+                TdClient.send(action)
+            }
         }
         currentFile = null
     }

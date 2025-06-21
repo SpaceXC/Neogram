@@ -2,6 +2,7 @@ package cn.spacexc.neogram.ui.screen.chats.menu
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.copy
@@ -59,19 +61,27 @@ fun MenuScreen(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center
         )
         Text(
-            "tdlib version $tdlibVersion",
+            "Debug: ${settings.debug}",
             modifier = Modifier
                 .fillMaxWidth()
                 .clickVfx(onClick = {
                     scope.launch {
                         context.updateConfiguration {
                             copy {
-                                chatItemStyle =
-                                    if (settings.chatItemStyle == ChatItemStyle.Minimalist) ChatItemStyle.Bubble else ChatItemStyle.Minimalist
+                                debug = !settings.debug
                             }
                         }
                     }
                 }),
+            color = Color.White,
+            fontFamily = miSans,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            "tdlib version $tdlibVersion",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
             color = Color.White,
             fontFamily = miSans,
             textAlign = TextAlign.Center

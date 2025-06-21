@@ -4,12 +4,13 @@ import android.util.Log
 import cn.spacexc.neogram.Application
 import cn.spacexc.neogram.data.TdClient
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.UpdateAuthorizationState
 
 object AuthRepository {
     val authState = MutableStateFlow<AuthState>(AuthState.WaitingParams)
+
+    lateinit var currentUser: TdApi.User
 
     sealed class AuthState(val dialogHint: String) {
         data object LoggedIn : AuthState("")
@@ -27,7 +28,14 @@ object AuthRepository {
         if (this is UpdateAuthorizationState) {
             Log.d("Neogram", "authHandler: $this")
             authState.value = when (authorizationState) {
-                is TdApi.AuthorizationStateReady -> AuthState.LoggedIn
+                is TdApi.AuthorizationStateReady -> {
+                    TdClient.send(TdApi.GetMe(), {
+                        if (it is TdApi.User) {
+                            currentUser = it
+                        }
+                    })
+                    AuthState.LoggedIn
+                }
                 is TdApi.AuthorizationStateWaitCode -> AuthState.EnterCode
                 is TdApi.AuthorizationStateWaitPassword -> AuthState.EnterPassword((authorizationState as TdApi.AuthorizationStateWaitPassword).passwordHint)
                 is TdApi.AuthorizationStateWaitPhoneNumber -> AuthState.EnterPhone

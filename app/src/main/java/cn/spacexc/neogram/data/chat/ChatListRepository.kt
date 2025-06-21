@@ -2,6 +2,7 @@ package cn.spacexc.neogram.data.chat
 
 import androidx.compose.ui.graphics.Color
 import cn.spacexc.neogram.data.TdClient
+import cn.spacexc.neogram.data.auth.AuthRepository
 import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.deepCopy
@@ -23,6 +24,7 @@ object ChatListRepository {
     val chatActions = MutableStateFlow(mapOf<Long, ChatAction>())
     private val chatPositions =
         MutableStateFlow(emptyMap<Long, ChatPosition>())
+    private var loadingStarted = false
     private var haveFullyLoaded = false
     val mutex = Mutex()
 
@@ -52,31 +54,71 @@ object ChatListRepository {
             }
     }
 
-    fun getMainChatList(limit: Int = 20) {
+    fun getMainChatList(limit: Int = 100) {
+        LogUtils.info("getMainChatList", "Load started")
+        //loadingStarted = true
         runBlocking {
             mutex.withLock {
-                if (!haveFullyLoaded && limit > chats.value.size) {
+                if (!haveFullyLoaded /*&& limit > chats.value.size*/) {
+                    LogUtils.info("getMainChatList", "Loading")
                     TdClient.send(
                         TdApi.LoadChats(ChatListMain(), limit - chats.value.size),
                         {
                             if (it is TdApi.Ok) {
                                 getMainChatList(limit)
-                            }
-                            if (it is TdApi.Error && it.code == 404) {
+                                LogUtils.info("getMainChatList", "Loading...")
+                            } else if (it is TdApi.Error && it.code == 404) {
                                 LogUtils.info("getMainChatList", "Load Completed")
                                 haveFullyLoaded = true
+                            } else {
+                                LogUtils.info("getMainChatList", "Error! $it")
                             }
                         },
                         {
+                            LogUtils.info("getMainChatList", "Error!")
                             it?.printStackTrace()
                         }
                     )
+                } else {
+                    LogUtils.info("getMainChatList", "Load Completed?")
+                    LogUtils.info(
+                        "getMainChatList",
+                        "haveFullyLoaded: $haveFullyLoaded, chats.value.size: ${chats.value.size}, limits: $limit"
+                    )
+                    LogUtils.info(
+                        "getMainChatList",
+                        "chats: ${chats.value.entries.map { it.value.title }}"
+                    )
+                    LogUtils.info("getMainChatList", "chatsPositions: ${chatPositions.value.size}")
                 }
             }
         }
     }
 
+    suspend fun getSavedMessageChatId(): Long {
+        /*val existingChatId = chats.value.values.find {
+            (it.messageSenderId as? TdApi.MessageSenderUser)?.userId == AuthRepository.currentUser.id
+        }?.id
+        if (existingChatId == null) {
+            var createdChatId = 0L
+            val chat = TdClient.sendAsync(TdApi.CreatePrivateChat(AuthRepository.currentUser.id, true)) as? Chat
+            createdChatId = chat?.id ?: 0
+            return createdChatId
+        }
+        else return existingChatId*/
+        var createdChatId = 0L
+        val chat = TdClient.sendAsync(
+            TdApi.CreatePrivateChat(
+                AuthRepository.currentUser.id,
+                true
+            )
+        ) as? Chat
+        createdChatId = chat?.id ?: 0
+        return createdChatId
+    }
+
     suspend fun TdApi.Object.chatListHandler() {
+        //if (!loadingStarted) return
         when (this) {
             is TdApi.UpdateNewChat -> {
                 val updatedChats = chats.value.toMutableMap()

@@ -225,7 +225,8 @@ fun SharedTransitionScope.ChatListScreen(
                                             navController.navigate(
                                                 MessagesScreen(
                                                     chat.id,
-                                                    chat.title
+                                                    chat.title,
+                                                    chat.unreadCount != 0
                                                 )
                                             )
                                         },

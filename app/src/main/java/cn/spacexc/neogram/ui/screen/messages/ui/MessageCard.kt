@@ -150,7 +150,7 @@ fun SharedTransitionScope.MessageCard(
                 DraggableBox(
                     enabled = isActionEnabled,
                     modifier = Modifier.fillMaxWidth(),
-                    50f,
+                    threshold = 50f,
                     onProgressChange = {
                         if (progress > 1.2) {
                             onVibrate()
@@ -205,5 +205,47 @@ fun SharedTransitionScope.MessageCard(
                 }
             }
         }
+    }
+}
+
+fun TdApi.Message.isDisplayedAsSmallCard(): Boolean {
+    return when (this.content) {
+        is TdApi.MessageChatJoinByLink -> {
+            true
+        }
+
+        is TdApi.MessageChatJoinByRequest -> {
+            true
+        }
+
+        is TdApi.MessageChatDeleteMember -> {
+            true
+        }
+
+        is TdApi.MessageExpiredPhoto -> {
+            true
+        }
+
+        is TdApi.MessageExpiredVideo -> {
+            true
+        }
+
+        is TdApi.MessageExpiredVideoNote -> {
+            true
+        }
+
+        is TdApi.MessageExpiredVoiceNote -> {
+            true
+        }
+
+        is TdApi.MessageChatChangeTitle -> {
+            true
+        }
+
+        is TdApi.MessageChatAddMembers -> {
+            true
+        }
+
+        else -> false
     }
 }

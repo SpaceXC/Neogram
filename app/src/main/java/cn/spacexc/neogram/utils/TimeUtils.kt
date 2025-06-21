@@ -2,7 +2,9 @@ package cn.spacexc.neogram.utils
 
 import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 fun formatTimestamp(timestamp: Long): String {
     val calendar = Calendar.getInstance()
@@ -68,4 +70,12 @@ fun Long.toDateStr(pattern: String = "yyyy-MM-dd HH:mm:ss"): String {
     val date = Date(this)
     val format = SimpleDateFormat(pattern)
     return format.format(date)
+}
+
+@SuppressLint("DefaultLocale")
+fun Long.toMinSec(): String {
+    val totalSeconds = this / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format("%02d:%02d", minutes, seconds)
 }

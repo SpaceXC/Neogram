@@ -3,6 +3,7 @@ package cn.spacexc.neogram.ui.screen.messages.audio
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import cn.spacexc.neogram.utils.ToastUtils
 import java.io.File
 import java.io.FileOutputStream
 
@@ -30,8 +31,12 @@ class AndroidAudioRecorder(private val context: Context) {
     }
 
     fun stop() {
-        recorder?.stop()
-        recorder?.reset()
-        recorder = null
+        try {
+            recorder?.stop()
+            recorder?.reset()
+            recorder = null
+        } catch (e: Exception) {
+            ToastUtils.toast("${e.message}")
+        }
     }
 }
