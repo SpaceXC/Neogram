@@ -18,7 +18,6 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.settings.NeogramSettings
-import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
@@ -53,7 +52,7 @@ fun SharedTransitionScope.MessageActionsScreen(
                 val senderIsMe =
                     message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
                 val isRead = message.sendingState
-                MessageCard(
+                /*MessageCard(
                     animatedContentScope = animatedContentScope,
                     isGroupChat = false,//currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
                     users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
@@ -72,7 +71,7 @@ fun SharedTransitionScope.MessageActionsScreen(
                     navController = navController
                 ) { senderName, replyContent ->
 
-                }
+                }*/
                 Row {
 
                 }

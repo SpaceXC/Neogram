@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.miSans
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -54,6 +55,12 @@ fun ReactionBadge(reaction: TdApi.MessageReaction) {
         if (reaction.type is TdApi.ReactionTypePaid) {
             Text((reaction.type as TdApi.ReactionTypeEmoji).emoji, fontSize = 10.sp)
         }
+        Text(
+            "${reaction.recentSenderIds.size}",
+            fontFamily = miSans,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(horizontal = 2.dp)
+        )
         /*Box(modifier = Modifier) {
             reaction.recentSenderIds.filter { it is TdApi.MessageSenderUser }.forEach {
                 val user = users[(it as TdApi.MessageSenderUser).userId]?.tgUser

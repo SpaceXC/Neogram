@@ -3,7 +3,6 @@ package cn.spacexc.neogram
 import android.app.Application
 import android.os.Build
 import cn.spacexc.neogram.data.TdClient
-import cn.spacexc.neogram.data.auth.AuthRepository
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.util.Locale
@@ -14,10 +13,17 @@ class Application : Application() {
 
     init {
         System.loadLibrary("tdjni")
+        System.loadLibrary("tgcallsjni")
     }
 
     override fun onCreate() {
         super.onCreate()
+
+        val tglogs = File(filesDir, "tglogs")
+        tglogs.mkdir()
+        val tgvoip = File(filesDir, "tgvoip")
+        tgvoip.mkdir()
+
         val dbPath = File(filesDir, "tgDb")
         dbPath.mkdir()
         mApplication = this

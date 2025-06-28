@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -125,6 +126,8 @@ fun SharedTransitionScope.ChatListScreen(
     LaunchedEffect(folders) {
         LogUtils.info("FOLDER", folders.toString())
     }
+
+    var avatarSize by remember { mutableStateOf(0.dp) }
 
     val displayedChatList by remember {
         derivedStateOf {
@@ -234,6 +237,7 @@ fun SharedTransitionScope.ChatListScreen(
                                     chats = chats,
                                     users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
                                     animatedContentScope = animatedContentScope,
+                                    avatarSize
                                 )
                             }
                         }
@@ -243,6 +247,32 @@ fun SharedTransitionScope.ChatListScreen(
         }
         LaunchedEffect(Unit) {
             ChatListRepository.getMainChatList()
+        }
+        Column(
+            modifier = Modifier
+                .onGloballyPositioned {
+                    avatarSize = with(localDensity) { it.size.height.toDp() }
+                }
+        ) {
+            Text(
+                "",
+                color = Color.White,
+                fontFamily = miSans,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                "",
+                color = Color.White,
+                fontFamily = miSans,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.alpha(.8f),
+            )
         }
     }
 }
@@ -311,9 +341,9 @@ fun SharedTransitionScope.ChatListItem(
     chat: ChatListRepository.ChatItem,
     chats: Map<Long, Chat>,
     users: Map<Long, User>,
-    animatedContentScope: AnimatedContentScope
+    animatedContentScope: AnimatedContentScope,
+    avatarSize: Dp
 ) {
-    val localDensity = LocalDensity.current
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -321,13 +351,10 @@ fun SharedTransitionScope.ChatListItem(
             .padding(vertical = 10.dp, horizontal = 6.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            var textHeight by remember {
-                mutableStateOf(0.dp)
-            }
             val thumbnailBytes = chat.photo?.minithumbnail?.data
             Box(
                 modifier = Modifier
-                    .size(textHeight + 6.dp)
+                    .size(avatarSize + 6.dp)
             ) {
                 if (thumbnailBytes != null) {
                     TgImage(
@@ -366,7 +393,7 @@ fun SharedTransitionScope.ChatListItem(
                     Box(
                         Modifier
                             .offset(x = (-1).dp, y = (-1).dp)
-                            .size(textHeight * 0.35f)
+                            .size(avatarSize * 0.35f)
                             .background(CardGray, CircleShape)
                             .padding(1.5.dp)
                             .align(Alignment.BottomEnd)
@@ -384,9 +411,6 @@ fun SharedTransitionScope.ChatListItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier
                     .weight(1f)
-                    .onGloballyPositioned {
-                        textHeight = with(localDensity) { it.size.height.toDp() }
-                    }
                 ) {
                     Text(
                         buildAnnotatedString {
@@ -463,8 +487,8 @@ fun SharedTransitionScope.ChatListItem(
                 if (chat.unreadCount > 0) {
                     Box(
                         modifier = Modifier
-                            .height(textHeight * 0.5f)
-                            .requiredSizeIn(minWidth = textHeight * 0.5f)
+                            .height(avatarSize * 0.5f)
+                            .requiredSizeIn(minWidth = avatarSize * 0.5f)
                             .background(if (chat.isMuted) Color.Gray else NeoBlue, CircleShape)
                     ) {
 

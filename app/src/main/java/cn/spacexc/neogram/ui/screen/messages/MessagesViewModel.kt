@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,8 +26,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.drinkless.tdlib.TdApi
 import java.io.File
-
-const val TAG_UNREAD_FROM = -1L
 
 class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessageId: Long) :
     ViewModel() {
@@ -141,7 +140,7 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                 TdApi.GetChatHistory(
                     chatId,
                     if (haveUnreadMessages) lastReadInboxMessageId else 0,
-                    0,
+                    -1,
                     20,
                     false
                 )
@@ -153,6 +152,7 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
             LogUtils.info("initMessages", "Loaded old messages")
 
             delay(100)
+
             if (haveUnreadMessages) {
                 LogUtils.info("initMessages", "Loading new messages")
                 val newMessagesMap = emptyMap<Long, TdApi.Message>().toMutableMap()
@@ -186,6 +186,36 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                 messages = newMessagesMap + messages
                 loadCompleted = true
             }
+        }
+    }
+
+    fun locateToMessage(messageId: Long, scope: CoroutineScope) {
+        if (messages.keys.contains(messageId)) {
+            val index = messages.keys.indexOf(messageId)
+            scope.launch {
+                delay(100)
+                //lazyColumnState.animateScrollAndCentralizeItem(index)
+            }
+        }
+    }
+
+    suspend fun LazyListState.animateScrollAndCentralizeItem(index: Int) {
+        /*val itemInfo = this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+        LogUtils.info("animateScrollAndCentralizeItem", "itemInfo $itemInfo")
+        if (itemInfo != null) {
+            val center = this@animateScrollAndCentralizeItem.layoutInfo.viewportEndOffset / 2
+            val childCenter = itemInfo.offset + itemInfo.size / 2
+            this@animateScrollAndCentralizeItem.scrollBy((childCenter - center).toFloat())
+        } else {
+            this@animateScrollAndCentralizeItem.animateScrollToItem(index)
+        }*/
+        var reached = false //this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+        while (!reached) {
+            scrollBy(
+                10f
+            )
+            reached = this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index } != null
+            LogUtils.info("animateScrollAndCentralizeItem", "$reached")
         }
     }
 

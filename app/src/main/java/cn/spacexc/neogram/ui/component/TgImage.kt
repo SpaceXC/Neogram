@@ -51,7 +51,29 @@ fun SharedTransitionScope.TgImage(
     LaunchedEffect(Unit) {
         FileRepository.downloadFile(file)
     }
-    if (downloadState?.localPath.isNullOrEmpty()) {
+    if (!downloadState?.localPath.isNullOrEmpty() || !file.local.path.isEmpty()) {
+        AsyncImage(
+            url = downloadState?.localPath ?: file.local.path,
+            contentDescription = null,
+            modifier = modifier
+                .sharedBounds(
+                    rememberSharedContentState(id),
+                    animatedContentScope
+                )
+                .clickAlpha(enabled = navController != null, onClick = {
+                    LogUtils.info("Image", "Clicked")
+                    navController?.navigate(
+                        ImageViewerScreen(
+                            downloadState?.localPath ?: file.local.path, id
+                        )
+                    )
+                }),
+            placeholderEnabled = false,
+            loadOriginal = true
+        )
+
+
+    } else {
         Box {
             if (thumbnail != null) {
                 val thumbnailBitmap =
@@ -77,22 +99,6 @@ fun SharedTransitionScope.TgImage(
                     .padding(vertical = 2.dp, horizontal = 4.dp)
             )
         }
-    } else {
-        AsyncImage(
-            url = downloadState.localPath,
-            contentDescription = null,
-            modifier = modifier
-                .sharedBounds(
-                    rememberSharedContentState(id),
-                    animatedContentScope
-                )
-                .clickAlpha(enabled = navController != null, onClick = {
-                    LogUtils.info("Image", "Clicked")
-                    navController?.navigate(ImageViewerScreen(downloadState.localPath, id))
-                }),
-            placeholderEnabled = false,
-            loadOriginal = true
-        )
     }
 }
 

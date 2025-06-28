@@ -34,6 +34,7 @@ import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
+import cn.spacexc.telegram.ui.component.clickVfx
 import org.drinkless.tdlib.TdApi
 
 @Composable
@@ -45,6 +46,7 @@ fun ReplyContent(
     chats: Map<Long, TdApi.Chat>,
     settings: NeogramSettings,
     shouldMessageBeDisplayedInBubble: Boolean,
+    onClick: (TdApi.Message) -> Unit
 ) {
     val localDensity = LocalDensity.current
     var textHeight by remember { mutableStateOf(0.dp) }
@@ -70,9 +72,11 @@ fun ReplyContent(
                 )
         )
         if (reply is TdApi.MessageReplyToMessage) {
-            Column(modifier = Modifier.onSizeChanged {
-                textHeight = with(localDensity) { it.height.toDp() }
-            }) {
+            Column(modifier = Modifier
+                .onSizeChanged {
+                    textHeight = with(localDensity) { it.height.toDp() }
+                }
+                .clickVfx(onClick = { messages[reply.messageId]?.let { onClick(it) } })) {
                 if (reply.content == null) {
                     messages[reply.messageId]?.let { message ->
                         senderName = when (message.senderId) {

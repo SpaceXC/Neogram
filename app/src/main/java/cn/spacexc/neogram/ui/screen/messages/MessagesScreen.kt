@@ -125,7 +125,7 @@ fun SharedTransitionScope.MessagesScreen(
         }
     val settings by neogramSettings()
     var isRecordingAudio by remember { mutableStateOf(false) }
-
+    var shouldDisplayUnreadHint by remember { mutableStateOf(haveUnreadMessages) }
     var voiceButtonPosition by remember { mutableStateOf(Offset.Zero) }
     var cancelAreaPosition by remember { mutableStateOf(Offset.Zero) }
     var cancelAreaSize by remember { mutableStateOf(IntSize.Zero) }
@@ -143,7 +143,9 @@ fun SharedTransitionScope.MessagesScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.initMessages(haveUnreadMessages)//getMessages(scope)
+        if (!viewModel.loadCompleted) {
+            viewModel.initMessages(haveUnreadMessages)//getMessages(scope)
+        }
     }
 
     LaunchedEffect(viewModel.messages) {
@@ -244,6 +246,24 @@ fun SharedTransitionScope.MessagesScreen(
                         }
                         val senderIsMe =
                             message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
+
+                        /*Text(
+                            settings.toString(),
+                            color = Color.White,
+                            fontFamily = miSans,
+                            fontSize = 10.sp,
+                        )*/
+
+                        /*if (message.id == lastReadInboxMessage && shouldDisplayUnreadHint) {
+                            Text(
+                                "以下是未读消息",
+                                color = Color.White,
+                                fontFamily = miSans,
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(vertical = 2.dp).fillMaxWidth().background(CardGray.copy(alpha = 0.9f)).padding(vertical = 2.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }*/
 
                         AnimatedVisibility(
                             isInActionMode,
@@ -375,7 +395,12 @@ fun SharedTransitionScope.MessagesScreen(
                             onVibrate = {
                                 viewModel.vibrate()
                             },
-                            navController = navController
+                            navController = navController,
+                            onLocateToMessage = { messageToLocate ->
+                                if (messageToLocate.chatId == chatId) {
+                                    viewModel.locateToMessage(messageToLocate.id, scope)
+                                }
+                            }
                         ) { senderName, replyContent ->
                             navController.navigate(
                                 SendMessageScreen(

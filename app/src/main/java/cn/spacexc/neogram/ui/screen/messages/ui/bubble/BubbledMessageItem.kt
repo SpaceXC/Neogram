@@ -49,7 +49,8 @@ fun SharedTransitionScope.BubbledMessageItem(
     isRead: Boolean?,
     settings: NeogramSettings,
     animatedContentScope: AnimatedContentScope,
-    navController: NavController
+    navController: NavController,
+    onLocateToRepliedMessage: (TdApi.Message) -> Unit
 ) {
     Column(horizontalAlignment = if (senderIsMe) Alignment.End else Alignment.Start) {
         if (isGroupChat && !isPreviousOneContinuous/* && message.content !is TdApi.MessageText*/) {
@@ -82,7 +83,8 @@ fun SharedTransitionScope.BubbledMessageItem(
                     users,
                     chats,
                     settings,
-                    shouldMessageDisplayedInABox
+                    shouldMessageDisplayedInABox,
+                    onLocateToRepliedMessage
                 )
             }
         }
@@ -106,7 +108,16 @@ fun SharedTransitionScope.BubbledMessageItem(
                             MessageForwardInfo(it, chats, users)
                         }
                         message.replyTo?.let { reply ->
-                            ReplyContent(reply, senderIsMe, messages, users, chats, settings, true)
+                            ReplyContent(
+                                reply,
+                                senderIsMe,
+                                messages,
+                                users,
+                                chats,
+                                settings,
+                                true,
+                                onLocateToRepliedMessage
+                            )
                         }
                         MessageContent(
                             animatedContentScope = animatedContentScope,

@@ -64,7 +64,8 @@ fun SharedTransitionScope.MinimalistMessageItem(
     isRead: Boolean?,
     settings: NeogramSettings,
     animatedContentScope: AnimatedContentScope,
-    navController: NavController
+    navController: NavController,
+    onLocateToRepliedMessage: (TdApi.Message) -> Unit
 ) {
     val localDensity = LocalDensity.current
     var nameRowHeight by remember { mutableStateOf(0.dp) }
@@ -177,7 +178,16 @@ fun SharedTransitionScope.MinimalistMessageItem(
                 MessageForwardInfo(it, chats, users)
             }
             message.replyTo?.let { reply ->
-                ReplyContent(reply, senderIsMe, messages, users, chats, settings, false)
+                ReplyContent(
+                    reply,
+                    senderIsMe,
+                    messages,
+                    users,
+                    chats,
+                    settings,
+                    false,
+                    onLocateToRepliedMessage
+                )
             }
             MessageContent(
                 animatedContentScope = animatedContentScope,

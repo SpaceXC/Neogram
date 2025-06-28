@@ -6,6 +6,7 @@ import org.drinkless.tdlib.TdApi
 
 object CallHandler {
     val currentCallId = MutableStateFlow(0)
+    val currentCall = MutableStateFlow<TdApi.Call?>(null)
 
     fun TdApi.Object.callHandler() {
         when (this) {
@@ -14,10 +15,12 @@ object CallHandler {
                 when (call.state) {
                     is TdApi.CallStatePending -> {
                         currentCallId.value = call.id
+                        currentCall.value = call
                     }
 
                     else -> {
                         currentCallId.value = 0
+                        currentCall.value = null
                     }
                 }
             }

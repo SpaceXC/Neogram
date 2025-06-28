@@ -54,6 +54,7 @@ fun SharedTransitionScope.MessageCard(
     settings: NeogramSettings,
     onVibrate: () -> Unit,
     isActionEnabled: Boolean = true,
+    onLocateToMessage: (TdApi.Message) -> Unit,
     onReplyMessage: (String, String) -> Unit
 ) {
     val localDensity = LocalDensity.current
@@ -105,15 +106,15 @@ fun SharedTransitionScope.MessageCard(
 
         when (message.content) {
             is TdApi.MessageChatJoinByLink -> {
-                MessageNotification("${name}通过链接加入了群聊")
+                MessageNotification("$name 通过链接加入了群聊")
             }
 
             is TdApi.MessageChatJoinByRequest -> {
-                MessageNotification("${name}通过申请加入了群聊")
+                MessageNotification("$name 通过申请加入了群聊")
             }
 
             is TdApi.MessageChatDeleteMember -> {
-                MessageNotification("${name}退出了群聊")
+                MessageNotification("$name 移除了成员 ${users[(message.content as TdApi.MessageChatDeleteMember).userId]?.username}")
             }
 
             is TdApi.MessageExpiredPhoto -> {
@@ -182,7 +183,8 @@ fun SharedTransitionScope.MessageCard(
                             isRead = isRead,
                             animatedContentScope = animatedContentScope,
                             navController = navController,
-                            settings = settings
+                            settings = settings,
+                            onLocateToRepliedMessage = onLocateToMessage
                         )
                     } else {
                         BubbledMessageItem(
@@ -199,7 +201,8 @@ fun SharedTransitionScope.MessageCard(
                             isRead = isRead,
                             animatedContentScope = animatedContentScope,
                             navController = navController,
-                            settings = settings
+                            settings = settings,
+                            onLocateToRepliedMessage = onLocateToMessage
                         )
                     }
                 }
