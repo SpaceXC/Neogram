@@ -23,4 +23,5 @@ dependencyResolutionManagement {
 rootProject.name = "Neogram"
 include(":app")
 include(":tdlib")
+include(":td")
 include(":baselineprofile")

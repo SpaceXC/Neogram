@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Build
 import cn.spacexc.neogram.data.TdClient
 import org.drinkless.tdlib.TdApi
+import org.thunderdog.challegram.voip.NLoader
 import java.io.File
 import java.util.Locale
 
@@ -14,6 +15,9 @@ class Application : Application() {
     init {
         System.loadLibrary("tdjni")
         System.loadLibrary("tgcallsjni")
+        System.loadLibrary("leveldbjni")
+        System.loadLibrary("tgxjni")
+        //NLoader.loadLibrary()
     }
 
     override fun onCreate() {

@@ -12,10 +12,10 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/baselineprofile" />
+            <option value="$PROJECT_DIR$/td" />
             <option value="$PROJECT_DIR$/tdlib" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
