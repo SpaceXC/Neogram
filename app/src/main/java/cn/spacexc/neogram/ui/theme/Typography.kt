@@ -16,9 +16,9 @@ import cn.spacexc.neogram.R
 
 @OptIn(ExperimentalTextApi::class)
 val miSans = FontFamily(
-    Font(R.font.misans_medium, FontWeight.Normal),
-    Font(R.font.misans_bold, FontWeight.Medium),
-    Font(R.font.misans_heavy, FontWeight.Bold),
+    Font(R.font.misans_regular, FontWeight.Normal),
+    Font(R.font.misans_medium, FontWeight.Medium),
+    Font(R.font.misans_bold, FontWeight.Bold),
 )
 
 val jetbrainsMono = FontFamily(

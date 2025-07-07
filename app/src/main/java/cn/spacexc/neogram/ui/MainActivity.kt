@@ -78,7 +78,17 @@ class MainActivity : ComponentActivity() {
                                 targetState.toRoute<LinkPreviewScreen>()
                                 fadeOut(tween(300))
                             } catch (_: Exception) {
-                                slideOutHorizontally(tween(300, 0)) { -it } + fadeOut(tween(300))
+                                try {
+                                    targetState.toRoute<SendMessageScreen>()
+                                    fadeOut(tween(300))
+                                } catch (_: Exception) {
+                                    slideOutHorizontally(
+                                        tween(
+                                            300,
+                                            0
+                                        )
+                                    ) { -it } + fadeOut(tween(300))
+                                }
                             }
                         },
                         popEnterTransition = {
@@ -113,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable<SendMessageScreen> {
-                            SendMessageScreen(it.toRoute<SendMessageScreen>(), navController)
+                            SendMessageScreen(it.toRoute<SendMessageScreen>(), this, navController)
                         }
                         composable<ImageViewerScreen> {
                             val (imagePath, id) = it.toRoute<ImageViewerScreen>()

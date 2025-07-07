@@ -1,18 +1,26 @@
 package cn.spacexc.neogram.ui.screen.messages.send
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -32,15 +41,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cn.spacexc.neogram.ui.component.NeoCard
+import cn.spacexc.neogram.ui.icons.AddEmoji
+import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.telegram.ui.component.TgButton
+import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class SendMessageScreen(
     val chatId: Long,
+    val receiverName: String,
     val defaultValue: String,
     val replyToMessageId: Long = 0,
     val replyMessageSenderName: String = "",
@@ -49,25 +63,27 @@ data class SendMessageScreen(
     val messageContentToEdit: String? = null
 )
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SendMessageScreen(
+fun SharedTransitionScope.SendMessageScreen(
     props: SendMessageScreen,
+    animatedContentScope: AnimatedContentScope,
     navController: NavController
 ) {
+    val localDensity = LocalDensity.current
+    var inputBarHeight by remember { mutableStateOf(0.dp) }
     val viewModel = viewModel { SendMessageViewModel(props.chatId, props.replyToMessageId) }
     var inputValue by remember { mutableStateOf(props.messageContentToEdit ?: props.defaultValue) }
     var isLoading by remember { mutableStateOf(false) }
-    TitleFrame("编辑消息", onTitleClicked = {}, onActionClicked = {
-        navController.previousBackStackEntry
-            ?.savedStateHandle
-            ?.set("inputValue", inputValue)
+    TitleFrame("编辑消息", timeText = props.receiverName, onTitleClicked = {}, onActionClicked = {
         //viewModel.updateDraftMessage(inputValue)
-        navController.popBackStack()
+        navController.navigateUp()
     }, isLoading = isLoading) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(top = it)
-            .padding(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = it)
+                .padding(horizontal = 8.dp)
         ) {
             if (props.replyToMessageId != 0L) {
                 val localDensity = LocalDensity.current
@@ -106,42 +122,103 @@ fun SendMessageScreen(
                     }
                 }
             }
-            BasicTextField(
-                value = inputValue, onValueChange = {
-                    inputValue = it
-                }, modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                textStyle = TextStyle(fontFamily = miSans, color = Color.White),
-                cursorBrush = SolidColor(NeoBlue)
-            )
-            TgButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = "Send!",
-                icon = Icons.AutoMirrored.Rounded.Send
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .sharedElement(
+                        rememberSharedContentState("inputBackground"),
+                        animatedContentScope
+                    )
             ) {
-                if (props.messageIdToEdit != null) {
-                    isLoading = true
-                    viewModel.updateTextMessage(
-                        props.chatId,
-                        props.messageIdToEdit,
-                        inputValue,
-                        {
+                BasicTextField(
+                    value = inputValue,
+                    onValueChange = { value ->
+                        inputValue = value
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("inputValue", inputValue)
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    textStyle = TextStyle(fontFamily = miSans, color = Color.White),
+                    cursorBrush = SolidColor(NeoBlue),
+                )
+                if (inputValue.isEmpty()) {
+                    Text(
+                        "键入消息",
+                        fontFamily = miSans,
+                        color = Color.White.copy(alpha = 0.4f),
+                        modifier = Modifier.sharedBounds(
+                            rememberSharedContentState(key = "enterMessageHint"),
+                            animatedContentScope
+                        )
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                NeoCard(
+                    modifier = Modifier
+                        .size(inputBarHeight),
+                    background = InputBarGray,
+                    borderAlpha = 0.03f,
+                    shape = RoundedCornerShape(40)
+                ) {
+                    Icon(
+                        imageVector = NeogramIcons.AddEmoji,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(6.dp)
+                    )
+                }
+                NeoCard(
+                    modifier = Modifier
+                        .clickVfx {
+                            viewModel.sendTextMessage(inputValue)
                             navController.previousBackStackEntry
                                 ?.savedStateHandle
                                 ?.set("inputValue", "")
                             navController.navigateUp()
-                        },
-                        {
-                            isLoading = false
                         }
-                    )
-                } else {
-                    viewModel.sendTextMessage(inputValue)
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("inputValue", "")
-                    navController.navigateUp()
+                        .weight(1f)
+                        .onSizeChanged { size ->
+                            with(localDensity) { inputBarHeight = size.height.toDp() }
+                        },
+                    //.background(InputBarGray, CircleShape)
+                    background = NeoBlue,
+                    shape = RoundedCornerShape(45)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            //.alpha(if (inputValue?.value.isNullOrEmpty()) 0.6f else 1f)
+                            .align(CenterStart)
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        /*.height(inputBarHeight)*/
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            /*if (inputValue?.value.isNullOrEmpty()) "发送消息" else inputValue.value*/
+                            "发送",
+                            fontFamily = miSans,
+                            fontSize = 13.sp,
+                            color = Color.White,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+
+                    }
                 }
             }
         }

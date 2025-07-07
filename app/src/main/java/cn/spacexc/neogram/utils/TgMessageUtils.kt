@@ -152,6 +152,18 @@ fun TdApi.MessageContent?.textDescription(
             }
         }
 
+        is TdApi.MessageChatChangePhoto -> buildAnnotatedString {
+            withStyle(spanStyle) {
+                append("头像更改")
+            }
+        }
+
+        is TdApi.MessageChatChangeTitle -> buildAnnotatedString {
+            withStyle(spanStyle) {
+                append("名称更改")
+            }
+        }
+
         else -> buildAnnotatedString {
             withStyle(spanStyle) {
                 append(this@textDescription?.toString())

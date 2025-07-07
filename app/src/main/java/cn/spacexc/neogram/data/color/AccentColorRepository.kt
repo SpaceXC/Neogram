@@ -12,7 +12,7 @@ object AccentColorRepository {
     fun TdApi.Object.accentColorsHandler() {
         when (this) {
             is TdApi.UpdateAccentColors -> {
-                AccentColorRepository.colors.value = colors.map {
+                AccentColorRepository.colors.value = colors.associate {
                     Pair(
                         it.id,
                         AccentColor(
@@ -21,7 +21,7 @@ object AccentColorRepository {
                             Color(it.darkThemeColors[0]).copy(alpha = 1f)
                         )
                     )
-                }.toMap()
+                }
                 LogUtils.info("AccentColors", "${AccentColorRepository.colors.value}")
                 availableIds.value = availableAccentColorIds.toList()
             }

@@ -4,25 +4,36 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,8 +41,11 @@ import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.DraggableBox
+import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.screen.messages.ui.bubble.BubbledMessageItem
 import cn.spacexc.neogram.ui.screen.messages.ui.minimalist.MinimalistMessageItem
+import cn.spacexc.neogram.ui.theme.BubbleGray
+import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
 import org.drinkless.tdlib.TdApi
@@ -135,6 +149,43 @@ fun SharedTransitionScope.MessageCard(
 
             is TdApi.MessageChatChangeTitle -> {
                 MessageNotification("$name 更改群名为 ${(message.content as TdApi.MessageChatChangeTitle).title}")
+            }
+
+            is TdApi.MessageChatChangePhoto -> {
+                Column(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                BubbleGray.copy(alpha = 0.5f),
+                                RoundedCornerShape(6.dp)
+                            )
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            "$name 更改聊天照片为",
+                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
+                            fontFamily = miSans,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    TgImage(
+                        file = (message.content as TdApi.MessageChatChangePhoto).photo.sizes.first().photo,
+                        thumbnail = (message.content as TdApi.MessageChatChangePhoto).photo.minithumbnail?.data,
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
             }
 
             is TdApi.MessageChatAddMembers -> {

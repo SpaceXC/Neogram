@@ -3,6 +3,7 @@ package cn.spacexc.neogram.ui.screen.messages.ui
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import cn.spacexc.neogram.ui.component.TgSticker
 import cn.spacexc.neogram.ui.component.TgVideo
 import cn.spacexc.neogram.ui.component.TgVoiceNote
 import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
 import org.drinkless.tdlib.TdApi
 
@@ -245,6 +248,21 @@ fun SharedTransitionScope.MessageContent(
                 )
             }
         }
+
+        is TdApi.MessageDocument -> {
+            Column {
+                Text(
+                    content.document.fileName,
+                    color = NeoBlue,
+                    fontFamily = miSans,
+                    fontWeight = FontWeight.Bold
+                )
+                if (content.caption.text.isNotEmpty()) {
+                    TgRichText(content.caption)
+                }
+            }
+        }
+
 
         else -> {
             Text(

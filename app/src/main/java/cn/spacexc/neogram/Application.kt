@@ -13,7 +13,7 @@ class Application : Application() {
 
     init {
         System.loadLibrary("tdjni")
-        System.loadLibrary("tgcallsjni")
+        //System.loadLibrary("tgcallsjni")
     }
 
     override fun onCreate() {

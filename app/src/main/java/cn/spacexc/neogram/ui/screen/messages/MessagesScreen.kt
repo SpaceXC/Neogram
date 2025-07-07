@@ -31,7 +31,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material3.Icon
@@ -50,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.mimeTypes
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -67,9 +66,10 @@ import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
+import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.component.NeoIconButton
+import cn.spacexc.neogram.ui.icons.Add
 import cn.spacexc.neogram.ui.icons.Back
-import cn.spacexc.neogram.ui.icons.ChatBubble
 import cn.spacexc.neogram.ui.icons.Delete
 import cn.spacexc.neogram.ui.icons.Edit
 import cn.spacexc.neogram.ui.icons.Microphone
@@ -181,7 +181,7 @@ fun SharedTransitionScope.MessagesScreen(
         )?.collectAsState()
 
     TitleFrame(
-        title,
+        currentChat?.title ?: "",
         timeText = chatState,
         onTitleClicked = {},
         onActionClicked = navController::navigateUp
@@ -287,6 +287,7 @@ fun SharedTransitionScope.MessagesScreen(
                                                     navController.navigate(
                                                         SendMessageScreen(
                                                             chatId,
+                                                            currentChat?.title ?: "",
                                                             inputValue?.value ?: "",
                                                             0,
                                                             "",
@@ -320,6 +321,7 @@ fun SharedTransitionScope.MessagesScreen(
                                         iconModifier = Modifier.scale(0.7f),
                                         modifier = Modifier
                                             .weight(1f)
+
                                             .clickVfx {
                                                 //Save Message
                                                 scope.launch {
@@ -405,6 +407,7 @@ fun SharedTransitionScope.MessagesScreen(
                             navController.navigate(
                                 SendMessageScreen(
                                     chatId,
+                                    currentChat?.title ?: "",
                                     inputValue?.value ?: "",
                                     messageId,
                                     senderName,
@@ -474,8 +477,69 @@ fun SharedTransitionScope.MessagesScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                var barHeight by remember { mutableStateOf(0.dp) }
-                Box(
+                NeoCard(
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f),
+                    background = InputBarGray,
+                    borderAlpha = 0.03f,
+                    shape = RoundedCornerShape(45)
+                ) {
+                    Icon(
+                        imageVector = NeogramIcons.Add,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .scale(0.8f)
+                            .fillMaxSize()
+                            .padding(8.dp)
+                    )
+                }
+                NeoCard(
+                    modifier = Modifier
+                        .sharedElement(
+                            rememberSharedContentState("inputBackground"),
+                            animatedContentScope
+                        )
+                        .clickVfx {
+                            navController.navigate(
+                                SendMessageScreen(
+                                    chatId,
+                                    currentChat?.title ?: "",
+                                    inputValue?.value ?: "",
+                                    0,
+                                )
+                            )
+                        }
+                        .weight(2.6f),
+                    //.background(InputBarGray, CircleShape)
+                    background = InputBarGray,
+                    borderAlpha = 0.03f,
+                    shape = RoundedCornerShape(45)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            //.alpha(if (inputValue?.value.isNullOrEmpty()) 0.6f else 1f)
+                            .align(CenterStart)
+                            .padding(horizontal = 8.dp)
+                            .height(inputBarHeight),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            if (inputValue?.value.isNullOrEmpty()) "键入消息" else inputValue.value/*"键入消息"*/,
+                            fontFamily = miSans,
+                            color = Color.White.copy(alpha = 0.4f),
+                            fontSize = 11.sp,
+                            modifier = Modifier.sharedBounds(
+                                rememberSharedContentState(key = "enterMessageHint"),
+                                animatedContentScope
+                            )
+                        )
+                    }
+                }
+                NeoCard(
                     modifier = Modifier
                         .onGloballyPositioned {
                             voiceButtonPosition = it.localToScreen(Offset.Zero)
@@ -509,55 +573,21 @@ fun SharedTransitionScope.MessagesScreen(
                                 }
                             )
                         }
-                        .onSizeChanged { barHeight = with(localDensity) { it.height.toDp() } }
                         .weight(1f)
                         .aspectRatio(1f)
-                        .background(InputBarGray, CircleShape)
-                        .padding(8.dp)
+                    /*.background(InputBarGray, CircleShape)*/,
+                    background = InputBarGray,
+                    borderAlpha = 0.03f,
+                    shape = RoundedCornerShape(45)
                 ) {
                     Icon(
                         imageVector = NeogramIcons.Microphone,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .clickAlpha {
-                            navController.navigate(
-                                SendMessageScreen(
-                                    chatId,
-                                    inputValue?.value ?: "",
-                                    0
-                                )
-                            )
-                        }
-                        .weight(3.5f)
-                        .height(barHeight)
-                        .background(InputBarGray, CircleShape)
-                        .padding(horizontal = 10.dp)
-                ) {
-                    Row(
                         modifier = Modifier
-                            .alpha(if (inputValue?.value.isNullOrEmpty()) 0.6f else 1f)
-                            .align(CenterStart),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = NeogramIcons.ChatBubble,
-                            contentDescription = null,
-                            modifier = Modifier.size(with(localDensity) { 18.sp.toDp() }),
-                            tint = Color.White
-                        )
-                        Text(
-                            if (inputValue?.value.isNullOrEmpty()) "发送消息" else inputValue.value,
-                            fontFamily = miSans,
-                            color = Color.White,
-                            fontSize = 13.sp
-                        )
-                    }
+                            .fillMaxSize()
+                            .padding(8.dp)
+                    )
                 }
             }
             //endregion

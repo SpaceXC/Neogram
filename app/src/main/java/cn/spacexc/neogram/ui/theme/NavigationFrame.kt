@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.R
 import cn.spacexc.neogram.data.connection.ConnectionState
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository
+import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.telegram.ui.component.clickAlpha
 
 val StatusBarsTopPadding: PaddingValues
@@ -103,7 +104,7 @@ fun TitleFrame(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(StatusBarsTopPadding)
+        //.padding(StatusBarsTopPadding)
     ) {
         Crossfade(
             targetState = isLoading,
@@ -166,24 +167,27 @@ fun TitleFrame(
             .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
 
-            Box(
+            NeoCard(
                 modifier = Modifier
                     .offset(y = 2.dp)
                     .size(with(localDensity) { 26.sp.toDp() })
                     .background(parseColor("#121212"), CircleShape)
-                    .padding(4.dp)
                     .clickAlpha { onActionClicked() }
                     .then(actionImageModifier),
-                contentAlignment = Alignment.Center
+                background = parseColor("#121212"),
+                shape = CircleShape,
+                borderAlpha = 0.03f
             ) {
-                actionImage()
+                Box(modifier = Modifier.padding(4.dp)) {
+                    actionImage()
+                }
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.clickAlpha { onTitleClicked() }) {
                 Text(
-                    text = if (timeText == null) timeSource.currentTime else timeText,
+                    text = timeText ?: timeSource.currentTime,
                     color = Color.White,
                     fontFamily = miSans,
                     fontWeight = FontWeight.Medium,
