@@ -162,8 +162,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<VoiceCallScreen> {
-                            val (id) = it.toRoute<VoiceCallScreen>()
-                            VoiceCallScreen(navController, id)
+                            VoiceCallScreen(navController)
                         }
 
                         composable<VideoPlayerScreen> {
@@ -190,7 +189,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 CallHandler.currentCallId.collect {
                     if (it == 0) navController.navigateUp() else navController.navigate(
-                        VoiceCallScreen(it)
+                        VoiceCallScreen
                     )
                 }
             }

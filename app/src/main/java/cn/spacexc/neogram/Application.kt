@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Build
 import cn.spacexc.neogram.data.TdClient
 import org.drinkless.tdlib.TdApi
+import org.thunderdog.challegram.voip.NLoader
 import java.io.File
 import java.util.Locale
 
@@ -13,7 +14,10 @@ class Application : Application() {
 
     init {
         System.loadLibrary("tdjni")
-        //System.loadLibrary("tgcallsjni")
+        System.loadLibrary("tgcallsjni")
+        System.loadLibrary("leveldbjni")
+        System.loadLibrary("tgxjni")
+        System.loadLibrary("tgcallsjni")
     }
 
     override fun onCreate() {
@@ -27,6 +31,8 @@ class Application : Application() {
         val dbPath = File(filesDir, "tgDb")
         dbPath.mkdir()
         mApplication = this
+        NLoader.loadLibrary()
+
         tdLibParams = TdLibParams(
             databaseDirectory = File(filesDir, "tgDb").absolutePath,
             useMessageDatabase = true,

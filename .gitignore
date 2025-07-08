@@ -14,6 +14,12 @@
 .cxx
 local.properties
 /app/src/main/java/cn/spacexc/neogram/TdSecret.kt
+**/*.apk
+**/*.so
+**/*.mp3
+**/*.mp4
+**/*.dump
+**/*.dm
 /app/thirdparty/androidx-media/libraries/test_data/src/test/assets/media/mp4/8k24fps_300ms.mp4
 /app/release/app-release.apk
 /app/release/baselineProfiles/0/app-release.dm

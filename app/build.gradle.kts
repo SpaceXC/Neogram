@@ -9,16 +9,42 @@ plugins {
 
 android {
     namespace = "cn.spacexc.neogram"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "cn.spacexc.neogram"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    sourceSets.getByName("main") {
+        /*java.srcDirs("./src/google/java") // TODO: Huawei & FOSS editions
+        java.srcDirs(
+            "./jni/third_party/webrtc/rtc_base/java/src",
+            "./jni/third_party/webrtc/modules/audio_device/android/java/src",
+            "./jni/third_party/webrtc/sdk/android/api",
+            "./jni/third_party/webrtc/sdk/android/src/java",
+            "../thirdparty/WebRTC/src/java"
+        )*/
+        java.srcDirs(
+            "./jni/third_party/webrtc/rtc_base/java/src",
+            "./jni/third_party/webrtc/modules/audio_device/android/java/src",
+            "./jni/third_party/webrtc/sdk/android/api",
+            "./jni/third_party/webrtc/sdk/android/src/java",
+            "thirdparty/WebRTC/src/java"
+        )
+        for (extension in arrayOf(
+            "decoder_ffmpeg",
+            "decoder_flac",
+            "decoder_opus",
+            "decoder_vp9"
+        )) {
+            java.srcDirs("thirdparty/androidx-media/libraries/${extension}/src/main/java")
+        }
     }
 
     buildTypes {
@@ -98,10 +124,15 @@ dependencies {
     implementation(libs.commons.lang3)
     implementation(libs.dotlottie.android)
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.decoder)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.zoomable)
 
     implementation(libs.androidx.datastore)
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
+
+    implementation(libs.relinker)
+
+    implementation(libs.checker.qual)
 }
