@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "cn.spacexc.neogram"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "cn.spacexc.neogram"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -30,6 +30,13 @@ android {
             "./jni/third_party/webrtc/sdk/android/src/java",
             "../thirdparty/WebRTC/src/java"
         )*/
+        java.srcDirs(
+            "./jni/third_party/webrtc/rtc_base/java/src",
+            "./jni/third_party/webrtc/modules/audio_device/android/java/src",
+            "./jni/third_party/webrtc/sdk/android/api",
+            "./jni/third_party/webrtc/sdk/android/src/java",
+            "thirdparty/WebRTC/src/java"
+        )
         for (extension in arrayOf(
             "decoder_ffmpeg",
             "decoder_flac",
@@ -125,7 +132,6 @@ dependencies {
     implementation(libs.protobuf.kotlin.lite)
 
     implementation(libs.relinker)
-    implementation(libs.android)
 
-    implementation("org.checkerframework:checker-qual:3.49.4")
+    implementation(libs.checker.qual)
 }

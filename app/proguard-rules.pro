@@ -31,11 +31,18 @@
 -keep class cn.spacexc.**
 
 -keep class org.drinkless.tdlib.TdApi { *; }
+-keep class org.drinkless.tdlib.TdApi { *; }
+-keep class org.* { *; }
+-keep class org.** { *; }
 -keepclassmembers class org.drinkless.tdlib.TdApi { *; }
+-keepclassmembers class org.* { *; }
+-keepclassmembers class org.** { *; }
 -keep class org.drinkless.tdlib.TdApi$* { *; }
 -keep class org.drinkless.tdlib.Client
 -keepclassmembers class org.drinkless.tdlib.Client { *; }
 -keep class org.drinkless.tdlib.Client$* { *; }
+
+-dontwarn java.lang.invoke.MethodHandleProxies
 
 -keepclassmembers class * extends androidx.datastore.preferences.protobuf.GeneratedMessageLite {
     <fields>;
@@ -56,4 +63,26 @@
 -keepclassmembers class androidx.datastore.preferences.PreferencesProto$Value {
      private java.lang.Object value_;
      private int valueCase_;
+}
+
+-keep class org.*
+-keep class org.**
+-keepclassmembers class org.**
+-keepclassmembers class org.*
+-keep class org.** {
+    <fields>;
+}
+-keep class leveldb.*
+-keep class leveldb.**
+-keepclassmembers class leveldb.**
+-keepclassmembers class leveldb.*
+-keep class leveldb.** {
+    <fields>;
+}
+-keep class androidx.media3.*
+-keep class androidx.media3.**
+-keepclassmembers class androidx.media3.*
+-keepclassmembers class androidx.media3.**
+-keep class androidx.media3.** {
+    <fields>;
 }

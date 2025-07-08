@@ -2,15 +2,24 @@ package cn.spacexc.neogram.ui.screen.call
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
+import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.call.CallHandler
+import cn.spacexc.neogram.data.call.durationFlow
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.theme.TitleFrame
@@ -33,52 +42,44 @@ const val VOIP_CONNECTION_MIN_LAYER = 65
 @Composable
 fun VoiceCallScreen(navController: NavController, callId: Int) {
     val currentCall by CallHandler.currentCall.collectAsState()
+    val callInstance by CallHandler.currentInstance.collectAsState()
+    val duration by (callInstance?.durationFlow()?.collectAsState(0L)
+        ?: remember { mutableLongStateOf(0L) })
     val users by UserRepository.users.collectAsState()
-    val networkType by ConnectionStateRepository.connectionState.collectAsState()
     TitleFrame("Call", onTitleClicked = {}, onActionClicked = navController::navigateUp) {
-        Column(modifier = Modifier.padding(top = it)) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(top = it)
+        ) {
             currentCall?.let { call ->
                 users[call.userId]?.let { user ->
                     Text(user.tgUser.username, fontFamily = miSans, color = Color.White)
                 }
                 Button({
-                    val stateListener: ConnectionStateListener = object : ConnectionStateListener {
-                        override fun onConnectionStateChanged(
-                            context: VoIPInstance,
-                            @CallState newState: Int
-                        ) {
-                            /*if (newState == CallState.ESTABLISHED) {
-                                tdlib.dispatchCallStateChanged(call.id, newState)
-                            } else if (newState == CallState.FAILED) {
-                                val connectionId = context.getConnectionId()
-                                tdlib.context().calls().hangUp(tdlib, call.id, true, connectionId)
-                            }*/
-                        }
-
-                        override fun onSignalBarCountChanged(newCount: Int) {
-                            //tdlib.dispatchCallBarsCount(call.id, newCount)
-                        }
-
-                        override fun onSignallingDataEmitted(data: ByteArray?) {
-                            /*tdlib.client()
-                                .send(SendCallSignalingData(call.id, data), tdlib.silentHandler())*/
-                        }
-                    }
-
-                    val temp = VoIP.instantiateAndConnect(
-                        call,
-                        currentCall?.state as TdApi.CallStateReady?,
-                        stateListener,
-                        false,
-                        null,
-                        networkType.ordinal,
-                        true,
-                        1,
-                        false
-                    )
+                    TdClient.send(TdApi.AcceptCall(call.id, VoIP.getProtocol()))
                 }) {
                     Text("JIE")
                 }
+                Button({
+                    TdClient.send(
+                        TdApi.DiscardCall(
+                            call.id,
+                            false,
+                            null,
+                            (duration / 1000L).toInt(),
+                            false,
+                            callInstance?.connectionId ?: 0
+                        )
+                    )
+                    callInstance?.performDestroy()
+                }) {
+                    Text("BUJIE")
+                }
+
+                Text("$duration", fontFamily = miSans, color = Color.White)
+                Text("${call.state}", fontFamily = miSans, color = Color.White)
+
             }
         }
     }

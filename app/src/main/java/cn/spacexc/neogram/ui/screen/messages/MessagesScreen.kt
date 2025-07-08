@@ -89,6 +89,7 @@ import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
+import org.thunderdog.challegram.voip.VoIP
 import kotlin.math.absoluteValue
 
 @Serializable
@@ -183,7 +184,12 @@ fun SharedTransitionScope.MessagesScreen(
     TitleFrame(
         title,
         timeText = chatState,
-        onTitleClicked = {},
+        onTitleClicked = {
+            if (currentChat?.type is TdApi.ChatTypePrivate) {
+                val userId = (currentChat.type as TdApi.ChatTypePrivate).userId
+                TdClient.send(TdApi.CreateCall(userId, VoIP.getProtocol(), false))
+            }
+        },
         onActionClicked = navController::navigateUp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {

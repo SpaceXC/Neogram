@@ -14,7 +14,8 @@
 .cxx
 local.properties
 /app/src/main/java/cn/spacexc/neogram/TdSecret.kt
-.apk
-.so
-.mp3
-.mp4
+**/*.apk
+**/*.so
+**/*.mp3
+**/*.mp4
+**/*.dump

@@ -17,7 +17,6 @@ class Application : Application() {
         System.loadLibrary("tgcallsjni")
         System.loadLibrary("leveldbjni")
         System.loadLibrary("tgxjni")
-        //NLoader.loadLibrary()
     }
 
     override fun onCreate() {
@@ -31,6 +30,8 @@ class Application : Application() {
         val dbPath = File(filesDir, "tgDb")
         dbPath.mkdir()
         mApplication = this
+        NLoader.loadLibrary()
+
         tdLibParams = TdLibParams(
             databaseDirectory = File(filesDir, "tgDb").absolutePath,
             useMessageDatabase = true,

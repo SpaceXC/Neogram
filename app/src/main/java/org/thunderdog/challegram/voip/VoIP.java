@@ -32,6 +32,7 @@ import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -312,7 +313,7 @@ public class VoIP {
 
     public static String[] getAvailableVersions(boolean allowFilter) {
         String tgVoipVersion = VoIPController.getVersion();
-        String[] tgCallsVersions = N.getTgCallsVersions();
+        //String[] tgCallsVersions = N.getTgCallsVersions();
 
         Set<String> versions = new LinkedHashSet<>();
         if (!allowFilter || !isForceDisabled(tgVoipVersion)) {
@@ -321,26 +322,28 @@ public class VoIP {
         Set<String> restrictedTgCallsVersions = new LinkedHashSet<>() {{
             add("11.0.0");
         }};
-        for (String tgCallsVersion : tgCallsVersions) {
+        /*for (String tgCallsVersion : tgCallsVersions) {
             if (restrictedTgCallsVersions.contains(tgCallsVersion))
                 continue;
             if (!allowFilter || !isForceDisabled(tgCallsVersion)) {
                 versions.add(tgCallsVersion);
             }
-        }
+        }*/
         if (versions.isEmpty()) {
             versions.add(tgVoipVersion);
+            LogUtils.INSTANCE.info("Versions", tgVoipVersion);
         }
-        return versions.toArray(new String[0]);
+        return restrictedTgCallsVersions.toArray(new String[0]);//versions.toArray(new String[0]);
     }
 
     public static TdApi.CallProtocol getProtocol() {
+        System.out.println(Arrays.toString(getAvailableVersions(false)));
         return new TdApi.CallProtocol(
                 true,
                 true,
                 VOIP_CONNECTION_MIN_LAYER,
                 VoIPController.getConnectionMaxLayer(),
-                getAvailableVersions(true)
+                getAvailableVersions(false)
         );
     }
 
@@ -375,7 +378,7 @@ public class VoIP {
             boolean isMicDisabled
     ) throws IllegalArgumentException {
         final String libtgvoipVersion = VoIPController.getVersion();
-        final String[] tgCallsVersions = N.getTgCallsVersions();
+        final String[] tgCallsVersions = {"11.0.0"};//N.getTgCallsVersions();
 
         final VoIPLogs.Pair logFiles = VoIPLogs.getNewFile(true);
         //tdlib.storeCallLogInformation(call, logFiles);
