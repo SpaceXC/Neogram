@@ -89,6 +89,7 @@ fun TitleFrame(
     actionImageModifier: Modifier = Modifier,
     isLoading: Boolean = false,
     fullScreenLoading: Boolean = true,
+    titleShadow: Boolean = true,
     onActionClicked: () -> Unit,
     onTitleClicked: () -> Unit,
     content: @Composable (topPadding: Dp) -> Unit
@@ -134,23 +135,28 @@ fun TitleFrame(
                     )
                 }
             } else {
-                Box(modifier = Modifier
-                    .graphicsLayer {
-                        compositingStrategy =
-                            CompositingStrategy.Offscreen
+                if (titleShadow) {
+                    Box(modifier = Modifier
+                        .graphicsLayer {
+                            compositingStrategy =
+                                CompositingStrategy.Offscreen
+                        }
+                        .drawWithContent {
+                            val titleHeightPx = titleHeight.toPx()
+                            drawContent()
+                            drawRect(
+                                brush = Brush.verticalGradient(
+                                    0f to Color(0, 0, 0, 40),
+                                    titleHeightPx / size.height * 1.2f to Color.Black
+                                ),
+                                blendMode = BlendMode.DstIn,
+                            )
+                            //drawContent()
+                        }) {
+                        content(titleHeight)
                     }
-                    .drawWithContent {
-                        val titleHeightPx = titleHeight.toPx()
-                        drawContent()
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                0f to Color(0, 0, 0, 40),
-                                titleHeightPx / size.height * 1.2f to Color.Black
-                            ),
-                            blendMode = BlendMode.DstIn,
-                        )
-                        //drawContent()
-                    }) {
+                }
+                else {
                     content(titleHeight)
                 }
             }

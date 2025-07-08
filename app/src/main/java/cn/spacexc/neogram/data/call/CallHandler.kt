@@ -18,7 +18,7 @@ object CallHandler {
 
     var currentInstance = MutableStateFlow<VoIPInstance?>(null)
 
-    fun TdApi.Object.callHandler() {
+    suspend fun TdApi.Object.callHandler() {
         when (this) {
             is TdApi.UpdateCall -> {
                 LogUtils.info("HIHIHIHI", this.toString())
@@ -32,23 +32,6 @@ object CallHandler {
                     is TdApi.CallStateReady -> {
                         val stateListener: ConnectionStateListener =
                             object : ConnectionStateListener {
-                                override fun onConnectionStateChanged(
-                                    context: VoIPInstance,
-                                    @CallState newState: Int
-                                ) {
-                                    LogUtils.info("onConnectionStateChanged", "$newState")
-                                    /*if (newState == CallState.ESTABLISHED) {
-                                        tdlib.dispatchCallStateChanged(call.id, newState)
-                                    } else if (newState == CallState.FAILED) {
-                                        val connectionId = context.getConnectionId()
-                                        tdlib.context().calls().hangUp(tdlib, call.id, true, connectionId)
-                                    }*/
-                                }
-
-                                override fun onSignalBarCountChanged(newCount: Int) {
-                                    //tdlib.dispatchCallBarsCount(call.id, newCount)
-                                }
-
                                 override fun onSignallingDataEmitted(data: ByteArray?) {
                                     TdClient
                                         .send(TdApi.SendCallSignalingData(call.id, data), {
@@ -89,6 +72,7 @@ object CallHandler {
 
                     is TdApi.CallStateHangingUp -> {
                         LogUtils.info("STATE", "$this")
+                        delay(1000)
                         currentCallId.value = 0
                         currentCall.value = null
                         currentInstance.value = null
@@ -96,6 +80,7 @@ object CallHandler {
 
                     is TdApi.CallStateDiscarded -> {
                         LogUtils.info("STATE", "$this")
+                        delay(1000)
                         currentCallId.value = 0
                         currentCall.value = null
                         currentInstance.value = null
@@ -103,6 +88,7 @@ object CallHandler {
 
                     is TdApi.CallStateError -> {
                         LogUtils.info("STATE", "$this")
+                        delay(1000)
                         currentCallId.value = 0
                         currentCall.value = null
                         currentInstance.value = null
