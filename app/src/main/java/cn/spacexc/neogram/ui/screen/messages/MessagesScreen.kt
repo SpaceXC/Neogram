@@ -490,7 +490,7 @@ fun SharedTransitionScope.MessagesScreen(
                             detectDragGesturesAfterLongPress(
                                 onDragStart = { offset ->
                                     isRecordingAudio = true
-                                    viewModel.recordAudio()
+                                    //viewModel.recordAudio()
                                     currentDragOffset = offset
                                 },
                                 onDrag = { change, dragAmount ->

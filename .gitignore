@@ -19,3 +19,4 @@ local.properties
 **/*.mp3
 **/*.mp4
 **/*.dump
+**/*.dm

@@ -34,13 +34,13 @@ import org.thunderdog.challegram.voip.VoIPInstance
 import org.thunderdog.challegram.voip.annotation.CallState
 
 @Serializable
-data class VoiceCallScreen(val callId: Int)
+data object VoiceCallScreen
 
 const val VOIP_CONNECTION_MIN_LAYER = 65
 
 
 @Composable
-fun VoiceCallScreen(navController: NavController, callId: Int) {
+fun VoiceCallScreen(navController: NavController) {
     val currentCall by CallHandler.currentCall.collectAsState()
     val callInstance by CallHandler.currentInstance.collectAsState()
     val duration by (callInstance?.durationFlow()?.collectAsState(0L)
