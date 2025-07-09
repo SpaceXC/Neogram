@@ -18,18 +18,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.copy
 import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
 import cn.spacexc.neogram.settings.updateConfiguration
+import cn.spacexc.neogram.ui.screen.settings.sessions.SessionsScreen
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 @Composable
-fun MenuScreen(modifier: Modifier = Modifier) {
+fun MenuScreen(modifier: Modifier = Modifier, navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settings by neogramSettings()
@@ -73,6 +75,18 @@ fun MenuScreen(modifier: Modifier = Modifier) {
                         }
                     }
                 }),
+            color = Color.White,
+            fontFamily = miSans,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            "SESSIONS",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+                .clickVfx {
+                    navController.navigate(SessionsScreen)
+                },
             color = Color.White,
             fontFamily = miSans,
             textAlign = TextAlign.Center

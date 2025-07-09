@@ -4,12 +4,20 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -52,19 +60,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.call.CallHandler
 import cn.spacexc.neogram.data.call.durationFlow
+import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.component.TgUserAvatar
+import cn.spacexc.neogram.ui.icons.Call
+import cn.spacexc.neogram.ui.icons.Chat
+import cn.spacexc.neogram.ui.icons.ChatBubble
+import cn.spacexc.neogram.ui.icons.Close
 import cn.spacexc.neogram.ui.icons.Microphone
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.icons.Speaker
+import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.NeoRed
@@ -160,47 +175,75 @@ fun VoiceCallScreen(navController: NavController) {
                             maxLines = 1
                         )
                     }
-                    val text = when (call.state) {
-                        is TdApi.CallStatePending -> {
-                            if (!(call.state as TdApi.CallStatePending).isCreated) "创建通话中"
-                            else {
-                                if ((call.state as TdApi.CallStatePending).isReceived) "响铃" else "通话已发出"
+                    AnimatedContent(
+                        call.state,
+                        transitionSpec = {
+                            // Compare the incoming number with the previous number.
+                            slideInVertically { height -> height } + fadeIn() togetherWith
+                                    slideOutVertically { height -> -height } + fadeOut()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) { state ->
+                        val text = when (state) {
+                            is TdApi.CallStatePending -> {
+                                if (!state.isCreated) "〇发起通话中"
+                                else {
+                                    if (state.isReceived) {
+                                        if (call.isOutgoing) "〇对方已响铃" else "Telegram Audio"
+                                    } else "〇通话已发出"
+                                }
                             }
+
+                            is TdApi.CallStateReady -> {
+                                if (duration < 0) "〇连接中..." else duration.toMinSec()
+                            }
+
+                            is TdApi.CallStateHangingUp -> "正在挂断"
+                            is TdApi.CallStateError -> "发生错误"
+                            is TdApi.CallStateDiscarded -> "通话结束"
+                            is TdApi.CallStateExchangingKeys -> "〇交换密钥"
+                            else -> "未知状态"
                         }
 
-                        is TdApi.CallStateReady -> {
-                            if (duration < 0) "连接中..." else duration.toMinSec()
+                        val textColor = when (state) {
+                            is TdApi.CallStatePending -> {
+                                if (call.isOutgoing) NeoBlue else Color.White.copy(0.7f)
+                            }
+
+                            is TdApi.CallStateReady -> {
+                                if (duration < 0) NeoBlue else Color.White.copy(0.7f)
+                            }
+
+                            is TdApi.CallStateDiscarded, is TdApi.CallStateError -> NeoRed
+                            else -> NeoBlue
                         }
 
-                        is TdApi.CallStateHangingUp -> "正在挂断"
-                        is TdApi.CallStateError -> "发生错误"
-                        is TdApi.CallStateDiscarded -> "通话结束"
-                        is TdApi.CallStateExchangingKeys -> "交换密钥"
-                        else -> "未知状态"
+                        Text(
+                            text,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = miSans,
+                            fontSize = 13.sp,
+                            color = textColor,
+                            maxLines = 1,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     }
-                    Text(
-                        text,
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = miSans,
-                        fontSize = 13.sp,
-                        color = if (call.state is TdApi.CallStateReady && duration > 0) Color.White.copy(
-                            alpha = 0.7f
-                        ) else NeoBlue,
-                        maxLines = 1
-                    )
+
 
                     Spacer(Modifier.weight(1f))
-                    val buttonsHeight = remember { 36.dp }
-                    AnimatedContent(call.state, transitionSpec = {
-                        /*fadeIn(animationSpec = tween(220, delayMillis = 90))
-                            .togetherWith(fadeOut(animationSpec = tween(90)))*/
-                        fadeIn().togetherWith(fadeOut())
-                    }, modifier = Modifier.fillMaxWidth()) { callState ->
-                        SharedTransitionLayout(modifier = Modifier.fillMaxWidth()) {
+                    val buttonsHeight = remember { 32.dp }
+                    SharedTransitionLayout(modifier = Modifier.fillMaxWidth()) {
+                        AnimatedContent(call.state, transitionSpec = {
+                            fadeIn(tween(400)).togetherWith(fadeOut(tween(400)))
+                        }, modifier = Modifier.fillMaxWidth()) { callState ->
                             when (callState) {
                                 is TdApi.CallStatePending -> {
                                     Row(
-                                        modifier = Modifier.padding(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp, vertical = 12.dp),
                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         NeoCard(
@@ -224,23 +267,42 @@ fun VoiceCallScreen(navController: NavController) {
                                                     )
                                                     callInstance?.performDestroy()
                                                 }),
-                                            background = InputBarGray,
+                                            background = if (call.isOutgoing) InputBarGray else NeoRed,
                                             shape = RoundedCornerShape(45),
-                                            borderAlpha = 0.03f
+                                            borderAlpha = if (call.isOutgoing) 0.03f else 0.2f
                                         ) {
-                                            Icon(
-                                                Icons.Rounded.Close,
-                                                contentDescription = null,
-                                                tint = Color.White,
+                                            Row(
                                                 modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(vertical = 8.dp)
-                                            )
+                                                    .fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    NeogramIcons.Close,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier
+                                                        .size(buttonsHeight)
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 6.dp)
+                                                )
+                                                if (call.isOutgoing) {
+                                                    Text(
+                                                        "取消呼叫",
+                                                        fontFamily = miSans,
+                                                        fontSize = 12.5.sp,
+                                                        color = Color.White,
+                                                        modifier = Modifier
+                                                            .padding(vertical = 6.dp)
+                                                            .padding(end = 4.dp)
+                                                    )
+                                                }
+                                            }
                                         }
                                         if (!call.isOutgoing) {
                                             NeoCard(
                                                 modifier = Modifier
-                                                    .weight(1f)
+                                                    .weight(2f)
                                                     .fillMaxWidth()
                                                     .clickVfx {
                                                         TdClient.send(
@@ -254,21 +316,132 @@ fun VoiceCallScreen(navController: NavController) {
                                                 shape = RoundedCornerShape(45)
                                             ) {
                                                 Icon(
-                                                    Icons.Rounded.Check,
+                                                    NeogramIcons.Call,
                                                     contentDescription = null,
                                                     tint = Color.White,
                                                     modifier = Modifier
+                                                        .height(buttonsHeight)
                                                         .fillMaxWidth()
-                                                        .padding(vertical = 8.dp)
+                                                        .padding(vertical = 6.dp)
+                                                )
+                                            }
+                                            NeoCard(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .fillMaxWidth()
+                                                    .clickVfx(onClick = {
+                                                        isMicrophoneDisabled = !isMicrophoneDisabled
+                                                    }),
+                                                background = InputBarGray,
+                                                shape = RoundedCornerShape(45),
+                                                borderAlpha = 0.03f
+                                            ) {
+                                                Icon(
+                                                    NeogramIcons.Speaker,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier
+                                                        .height(buttonsHeight)
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 6.dp)
                                                 )
                                             }
                                         }
                                     }
                                 }
 
-                                is TdApi.CallStateReady -> {
+                                is TdApi.CallStateDiscarded, is TdApi.CallStateHangingUp -> {
+                                    val infiniteTransition = rememberInfiniteTransition()
+                                    val alpha by infiniteTransition.animateFloat(
+                                        initialValue = 1f,
+                                        targetValue = 0f,
+                                        animationSpec = infiniteRepeatable(
+                                            animation = tween(
+                                                durationMillis = 500
+                                            ),
+                                            repeatMode = RepeatMode.Reverse
+                                        )
+                                    )
                                     Row(
-                                        modifier = Modifier.padding(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        NeoCard(
+                                            modifier = Modifier
+                                                .sharedElement(
+                                                    rememberSharedContentState("discard"),
+                                                    this@AnimatedContent
+                                                )
+                                                .weight(1f)
+                                                .fillMaxWidth()
+                                                .alpha(alpha),
+                                            background = if (call.isOutgoing) InputBarGray else NeoRed,
+                                            shape = RoundedCornerShape(45),
+                                            borderAlpha = if (call.isOutgoing) 0.03f else 0.2f
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    NeogramIcons.Close,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier
+                                                        .size(buttonsHeight)
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 6.dp)
+                                                )
+                                            }
+                                        }
+
+                                        Box(modifier = Modifier.weight(2f))
+
+                                        NeoCard(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxWidth()
+                                                .clickVfx(onClick = {
+                                                    users[call.userId]?.tgUser?.let { user ->
+                                                        TdClient.send(TdApi.CreatePrivateChat(user.id, false), { chat ->
+                                                            if (chat is TdApi.Chat) {
+                                                                navController.navigate(
+                                                                    MessagesScreen(
+                                                                        chat.id,
+                                                                        chat.title,
+                                                                        false
+                                                                    )
+                                                                )
+                                                            }
+                                                        })
+                                                    }
+                                                }),
+                                            background = InputBarGray,
+                                            shape = RoundedCornerShape(45),
+                                            borderAlpha = 0.03f
+                                        ) {
+                                            Icon(
+                                                NeogramIcons.Chat,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier
+                                                    .height(buttonsHeight)
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 6.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                is TdApi.CallStateReady, is TdApi.CallStateExchangingKeys -> {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp, vertical = 12.dp),
                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         NeoCard(
@@ -297,13 +470,13 @@ fun VoiceCallScreen(navController: NavController) {
                                             borderAlpha = 0.03f
                                         ) {
                                             Icon(
-                                                Icons.Rounded.Close,
+                                                NeogramIcons.Close,
                                                 contentDescription = null,
                                                 tint = Color.White,
                                                 modifier = Modifier
                                                     .height(buttonsHeight)
                                                     .fillMaxWidth()
-                                                    .padding(vertical = 8.dp)
+                                                    .padding(vertical = 6.dp)
                                             )
                                         }
 
@@ -330,7 +503,7 @@ fun VoiceCallScreen(navController: NavController) {
                                                 modifier = Modifier
                                                     .height(buttonsHeight)
                                                     .fillMaxWidth()
-                                                    .padding(vertical = 8.dp)
+                                                    .padding(vertical = 6.dp)
                                             )
                                         }
                                         NeoCard(
@@ -351,10 +524,14 @@ fun VoiceCallScreen(navController: NavController) {
                                                 modifier = Modifier
                                                     .height(buttonsHeight)
                                                     .fillMaxWidth()
-                                                    .padding(vertical = 8.dp)
+                                                    .padding(vertical = 6.dp)
                                             )
                                         }
                                     }
+                                }
+
+                                else -> {
+                                    Box(modifier = Modifier.fillMaxWidth())
                                 }
                             }
                         }

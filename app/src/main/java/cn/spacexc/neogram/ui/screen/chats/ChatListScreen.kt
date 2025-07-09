@@ -198,7 +198,7 @@ fun SharedTransitionScope.ChatListScreen(
             if (menu) {
                 MenuScreen(modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = topPadding))
+                    .padding(top = topPadding), navController)
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -248,6 +248,11 @@ fun SharedTransitionScope.ChatListScreen(
         LaunchedEffect(Unit) {
             ChatListRepository.getMainChatList()
         }
+
+        //region placeholder
+        /**
+         * THIS IS A PLACEHOLDER FOR MEASURING SIZE
+         */
         Column(
             modifier = Modifier
                 .onGloballyPositioned {
@@ -274,6 +279,10 @@ fun SharedTransitionScope.ChatListScreen(
                 modifier = Modifier.alpha(.8f),
             )
         }
+        /**
+         * END OF PLACEHOLDER
+         */
+        //endregion
     }
 }
 

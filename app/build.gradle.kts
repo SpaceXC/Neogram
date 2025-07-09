@@ -73,6 +73,14 @@ android {
             jniLibs.srcDirs("../tdlib/src/main/libs")
         }
     }
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64") // 你需要支持的架构
+            isUniversalApk = false // 是否生成一个包含所有ABI的APK，false表示只生成拆分的
+        }
+    }
 }
 
 protobuf {

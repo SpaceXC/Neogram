@@ -32,6 +32,7 @@ import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionsScreen
 import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
+import cn.spacexc.neogram.ui.screen.settings.sessions.SessionsScreen
 import cn.spacexc.neogram.ui.screen.splash.SplashScreen
 import cn.spacexc.neogram.ui.screen.test.UITestScreen
 import cn.spacexc.neogram.ui.screen.video.VideoPlayerScreen
@@ -181,6 +182,10 @@ class MainActivity : ComponentActivity() {
                                 messageChatId = chatId,
                                 messageId = messageId
                             )
+                        }
+
+                        composable<SessionsScreen> {
+                            SessionsScreen(navController)
                         }
                     }
                 }

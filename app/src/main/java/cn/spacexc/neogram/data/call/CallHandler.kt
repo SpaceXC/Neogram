@@ -72,15 +72,11 @@ object CallHandler {
 
                     is TdApi.CallStateHangingUp -> {
                         LogUtils.info("STATE", "$this")
-                        delay(1000)
-                        currentCallId.value = 0
-                        currentCall.value = null
-                        currentInstance.value = null
                     }
 
                     is TdApi.CallStateDiscarded -> {
                         LogUtils.info("STATE", "$this")
-                        delay(1000)
+                        delay(3000)
                         currentCallId.value = 0
                         currentCall.value = null
                         currentInstance.value = null
@@ -88,7 +84,7 @@ object CallHandler {
 
                     is TdApi.CallStateError -> {
                         LogUtils.info("STATE", "$this")
-                        delay(1000)
+                        delay(3000)
                         currentCallId.value = 0
                         currentCall.value = null
                         currentInstance.value = null

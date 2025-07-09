@@ -48,3 +48,7 @@ local.properties
 /app/thirdparty/androidx-media/libraries/test_data/src/test/assets/transformerdumps/composition/seq-sowt-with-video.mov+seq-gap_200ms-sample_rf64.wav.dump
 /app/thirdparty/androidx-media/libraries/test_data/src/test/assets/transformerdumps/composition/seq-sowt-with-video.mov+seq-sample_rf64.wav-gap_100ms.dump
 /app/thirdparty/androidx-media/libraries/test_data/src/test/assets/transformerdumps/composition/seq-sowt-with-video.mov+seq-sample_rf64.wav_clipped0msTo300ms-gap_200ms-sample_rf64.wav_clipped300msTo800ms.dump
+/tdlib/openssl/arm64-v8a/lib/libcryptox.so
+/tdlib/openssl/armeabi-v7a/lib/libcryptox.so
+/tdlib/openssl/x86/lib/libcryptox.so
+/tdlib/openssl/x86_64/lib/libcryptox.so
