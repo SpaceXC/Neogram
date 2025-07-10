@@ -7,6 +7,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseInCubic
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -38,6 +39,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -122,7 +124,6 @@ fun SharedTransitionScope.ChatListScreen(
 
     var isShowingMenu by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(folders) {
         LogUtils.info("FOLDER", folders.toString())
     }
@@ -143,12 +144,13 @@ fun SharedTransitionScope.ChatListScreen(
         }
     }
 
+    val actionButtonAlpha by animateFloatAsState(if (isShowingMenu) 0.74f else 1f)
     TitleFrame(
         "Neo",
         actionImage = {
             if (isShowingMenu) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                    imageVector = Icons.Rounded.KeyboardArrowUp,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier
@@ -166,6 +168,8 @@ fun SharedTransitionScope.ChatListScreen(
                 )
             }
         },
+        actionButtonAlpha = actionButtonAlpha,
+        titleShadow = !isShowingMenu,
         onActionClicked = {
             isShowingMenu = !isShowingMenu
         },
@@ -196,9 +200,10 @@ fun SharedTransitionScope.ChatListScreen(
             }
         }) { menu ->
             if (menu) {
-                MenuScreen(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = topPadding), navController)
+                MenuScreen(
+                    modifier = Modifier
+                        .fillMaxSize(), navController, topPadding
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -418,8 +423,9 @@ fun SharedTransitionScope.ChatListItem(
             }
             Spacer(Modifier.width(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier
-                    .weight(1f)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
                 ) {
                     Text(
                         buildAnnotatedString {

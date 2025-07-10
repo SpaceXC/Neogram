@@ -1,6 +1,7 @@
 package cn.spacexc.neogram.ui.component
 
 import android.graphics.BitmapFactory
+import android.graphics.RenderEffect
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -32,6 +33,7 @@ import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.formatFileSize
 import cn.spacexc.telegram.ui.component.clickAlpha
 import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
+import coil.transform.Transformation
 import org.drinkless.tdlib.TdApi.DownloadFile
 import org.drinkless.tdlib.TdApi.File
 import java.util.UUID
@@ -44,7 +46,8 @@ fun SharedTransitionScope.TgImage(
     thumbnail: ByteArray?,
     modifier: Modifier = Modifier,
     navController: NavController?,
-    id: String? = null
+    id: String? = null,
+    transformations: List<Transformation> = listOf(),
 ) {
     var downloadState = FileRepository.downloadList[file.id]
     var id by remember { mutableStateOf(id ?: UUID.randomUUID().toString()) }
@@ -69,10 +72,9 @@ fun SharedTransitionScope.TgImage(
                     )
                 }),
             placeholderEnabled = false,
-            loadOriginal = true
+            loadOriginal = true,
+            transformations = transformations
         )
-
-
     } else {
         Box {
             if (thumbnail != null) {
@@ -106,6 +108,7 @@ fun SharedTransitionScope.TgImage(
 fun TgImage(
     file: File,
     thumbnail: ByteArray?,
+    transformations: List<Transformation> = listOf(),
     modifier: Modifier = Modifier
 ) {
     var localPath by remember { mutableStateOf(file.local.path) }
@@ -137,7 +140,8 @@ fun TgImage(
             url = localPath,
             contentDescription = null,
             modifier = modifier,
-            placeholderEnabled = false
+            placeholderEnabled = false,
+            transformations = transformations,
         )
     }
 }

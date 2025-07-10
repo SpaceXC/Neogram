@@ -187,7 +187,7 @@ fun SharedTransitionScope.MessagesScreen(
         onTitleClicked = {
             if (currentChat?.type is TdApi.ChatTypePrivate) {
                 val userId = (currentChat.type as TdApi.ChatTypePrivate).userId
-                TdClient.send(TdApi.CreateCall(userId, VoIP.getProtocol(), false, 0))
+                TdClient.send(TdApi.CreateCall(userId, VoIP.getProtocol(), false))
             }
         },
         onActionClicked = navController::navigateUp

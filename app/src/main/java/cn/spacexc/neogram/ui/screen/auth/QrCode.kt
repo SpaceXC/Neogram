@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cn.spacexc.neogram.data.auth.AuthRepository
 import cn.spacexc.neogram.ui.theme.miSans
+import cn.spacexc.telegram.ui.component.clickVfx
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 @Composable
@@ -45,5 +46,8 @@ fun QrCode(
             )
         }
         Text("扫描二维码以登录", fontFamily = miSans, color = Color.White)
+        Text("PHONE", fontFamily = miSans, color = Color.White, modifier = Modifier.clickVfx {
+            viewModel.usePhoneNumber()
+        })
     }
 }

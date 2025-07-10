@@ -2,6 +2,7 @@ package cn.spacexc.neogram.ui.screen.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -48,10 +49,11 @@ fun AuthScreen(
 
         Column(
             modifier = Modifier
-                .verticalScroll(scrollState)
+                .fillMaxSize()
+                //.verticalScroll(scrollState)
                 .padding(top = padding + 8.dp, bottom = 8.dp)
                 .padding(horizontal = 11.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            //horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             when(authState) {

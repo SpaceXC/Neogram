@@ -71,7 +71,7 @@ public class CallConfiguration {
                     state.encryptionKey,
                     state.emojis,
                     state.allowP2p,
-                    //state.isGroupCallSupported,
+                    state.isGroupCallSupported,
                     state.customParameters
             );
         } else {

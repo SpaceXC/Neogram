@@ -23,7 +23,7 @@ fun SharedTransitionScope.TgAnimation(
         }
 
         "image/gif" -> {
-            TgImage(animatedContentScope, animation.animation, null, modifier, navController, id)
+            TgImage(animatedContentScope, animation.animation, null, modifier, navController = navController, id = id)
         }
     }
 }

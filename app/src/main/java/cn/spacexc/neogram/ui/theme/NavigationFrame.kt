@@ -3,6 +3,7 @@ package cn.spacexc.neogram.ui.theme
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -41,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
@@ -75,6 +77,7 @@ val StatusBarsTopPadding: PaddingValues
 @Composable
 fun TitleFrame(
     title: String,
+    actionButtonAlpha: Float = 1f,
     timeText: String? = null,
     actionImage: @Composable () -> Unit = {
         Icon(
@@ -86,7 +89,6 @@ fun TitleFrame(
                 .scale(1.3f)
         )
     },
-    actionImageModifier: Modifier = Modifier,
     isLoading: Boolean = false,
     fullScreenLoading: Boolean = true,
     titleShadow: Boolean = true,
@@ -135,8 +137,9 @@ fun TitleFrame(
                     )
                 }
             } else {
-                if (titleShadow) {
-                    Box(modifier = Modifier
+                val alpha by animateIntAsState(if (titleShadow) 40 else 255)
+                Box(
+                    modifier = Modifier
                         .graphicsLayer {
                             compositingStrategy =
                                 CompositingStrategy.Offscreen
@@ -146,40 +149,38 @@ fun TitleFrame(
                             drawContent()
                             drawRect(
                                 brush = Brush.verticalGradient(
-                                    0f to Color(0, 0, 0, 40),
-                                    titleHeightPx / size.height * 1.2f to Color.Black
+                                    0f to Color(0, 0, 0, alpha),
+                                    titleHeightPx / size.height * 1.2f to Color.Black   //???
                                 ),
                                 blendMode = BlendMode.DstIn,
                             )
                             //drawContent()
-                        }) {
-                        content(titleHeight)
-                    }
-                }
-                else {
+                        }
+                ) {
                     content(titleHeight)
                 }
             }
         }
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .onSizeChanged {
-                titleHeight = with(localDensity) { it.height.toDp() }
-            }
-            .graphicsLayer {
-                compositingStrategy =
-                    CompositingStrategy.Offscreen
-            }
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onSizeChanged {
+                    titleHeight = with(localDensity) { it.height.toDp() }
+                }
+                .graphicsLayer {
+                    compositingStrategy =
+                        CompositingStrategy.Offscreen
+                }
+                .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
 
             NeoCard(
                 modifier = Modifier
                     .offset(y = 2.dp)
-                    .size(with(localDensity) { 26.sp.toDp() })
-                    .background(parseColor("#121212"), CircleShape)
                     .clickAlpha { onActionClicked() }
-                    .then(actionImageModifier),
+                    .alpha(actionButtonAlpha)
+                    .size(with(localDensity) { 26.sp.toDp() })
+                    .background(parseColor("#121212"), CircleShape),
                 background = parseColor("#121212"),
                 shape = CircleShape,
                 borderAlpha = 0.03f

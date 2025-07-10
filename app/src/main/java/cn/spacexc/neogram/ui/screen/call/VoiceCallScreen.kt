@@ -259,7 +259,7 @@ fun VoiceCallScreen(navController: NavController) {
                                                         TdApi.DiscardCall(
                                                             call.id,
                                                             false,
-                                                            //null,
+                                                            null,
                                                             (duration / 1000L).toInt(),
                                                             false,
                                                             callInstance?.connectionId ?: 0
@@ -457,7 +457,7 @@ fun VoiceCallScreen(navController: NavController) {
                                                         TdApi.DiscardCall(
                                                             call.id,
                                                             false,
-                                                            //null,
+                                                            null,
                                                             (duration / 1000L).toInt(),
                                                             false,
                                                             callInstance?.connectionId ?: 0
