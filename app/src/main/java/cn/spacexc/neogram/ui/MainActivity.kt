@@ -27,6 +27,7 @@ import cn.spacexc.neogram.ui.screen.call.VoiceCallScreen
 import cn.spacexc.neogram.ui.screen.chats.ChatListScreen
 import cn.spacexc.neogram.ui.screen.forward.ForwardMessageScreen
 import cn.spacexc.neogram.ui.screen.image.ImageViewerScreen
+import cn.spacexc.neogram.ui.screen.lock.LockScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionsScreen
@@ -186,6 +187,10 @@ class MainActivity : ComponentActivity() {
 
                         composable<SessionsScreen> {
                             SessionsScreen(navController)
+                        }
+
+                        composable<LockScreen> {
+                            LockScreen(navController)
                         }
                     }
                 }

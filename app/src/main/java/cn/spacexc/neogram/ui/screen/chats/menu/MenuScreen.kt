@@ -1,5 +1,6 @@
 package cn.spacexc.neogram.ui.screen.chats.menu
 
+import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -36,10 +37,13 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -105,17 +109,16 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                 ) { hasPassed ->
                     Box {
                         if (photo != null && !hasPassed) {
-                            Box(modifier = Modifier) {
+                            Box(modifier = Modifier.sharedElement(
+                                rememberSharedContentState("avatar"),
+                                this@AnimatedContent
+                            )) {
                                 TgImage(
                                     photo.big,
                                     photo.minithumbnail?.data,
                                     modifier = Modifier
-                                        .sharedElement(
-                                            rememberSharedContentState("avatar"),
-                                            this@AnimatedContent
-                                        )
                                         .size(containerWidth)
-                                        .alpha(0.65f)
+                                        .alpha(1f)
                                         .graphicsLayer {
                                             compositingStrategy =
                                                 CompositingStrategy.Offscreen
@@ -132,32 +135,34 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                             )
                                         }
                                 )
-                                TgImage(
-                                    photo.big,
-                                    photo.minithumbnail?.data,
-                                    modifier = Modifier
+                                if (Build.VERSION.SDK_INT >= 31) {
+                                    TgImage(
+                                        photo.big,
+                                        photo.minithumbnail?.data,
+                                        modifier = Modifier
 
-                                        .fillMaxWidth()
-                                        //.alpha(0f)
-                                        .blur(20.dp)
-                                        .padding(bottom = 20.dp)
-                                        .alpha(0.65f)
-                                        .size(containerWidth)
-                                        .graphicsLayer {
-                                            compositingStrategy =
-                                                CompositingStrategy.Offscreen
-                                        }
-                                        .drawWithContent {
-                                            drawContent()
-                                            drawRect(
-                                                brush = Brush.verticalGradient(
-                                                    0f to Color.Transparent,
-                                                    0.9f to Color.Black
-                                                ),
-                                                blendMode = BlendMode.DstIn,
-                                            )
-                                        }
-                                )
+                                            .fillMaxWidth()
+                                            //.alpha(0f)
+                                            .blur(20.dp)
+                                            .padding(bottom = 20.dp)
+                                            .alpha(1f)
+                                            .size(containerWidth)
+                                            .graphicsLayer {
+                                                compositingStrategy =
+                                                    CompositingStrategy.Offscreen
+                                            }
+                                            .drawWithContent {
+                                                drawContent()
+                                                drawRect(
+                                                    brush = Brush.verticalGradient(
+                                                        0f to Color.Transparent,
+                                                        0.9f to Color.Black
+                                                    ),
+                                                    blendMode = BlendMode.DstIn,
+                                                )
+                                            }
+                                    )
+                                }
                             }
                             Column(
                                 modifier = Modifier
@@ -179,14 +184,16 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                     modifier = Modifier.sharedBounds(
                                         rememberSharedContentState("@username"),
                                         this@AnimatedContent
-                                    )
+                                    ),
+                                    style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = 0.7f), blurRadius = 15f))
                                 )
                                 Text(
                                     "@${currentUser.usernames?.activeUsernames?.firstOrNull() ?: ""}",
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     modifier = Modifier.alpha(0.7f),
-                                    fontFamily = miSans
+                                    fontFamily = miSans,
+                                    style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = 0.7f), blurRadius = 15f))
                                 )
                             }
                         } else {

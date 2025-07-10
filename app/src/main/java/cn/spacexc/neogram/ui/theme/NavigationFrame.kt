@@ -50,10 +50,12 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -154,7 +156,6 @@ fun TitleFrame(
                                 ),
                                 blendMode = BlendMode.DstIn,
                             )
-                            //drawContent()
                         }
                 ) {
                     content(titleHeight)
@@ -200,7 +201,8 @@ fun TitleFrame(
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.End,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = 0.7f), blurRadius = 15f))
                 )
                 Text(
                     text = when (connectionState) {
