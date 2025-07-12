@@ -13,13 +13,13 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-val NeogramIcons.Add: ImageVector
+val NeogramIcons.Signal1: ImageVector
     get() {
-        if (_Add != null) {
-            return _Add!!
+        if (_Signal1 != null) {
+            return _Signal1!!
         }
-        _Add = ImageVector.Builder(
-            name = "Add",
+        _Signal1 = ImageVector.Builder(
+            name = "Signal1",
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
@@ -27,32 +27,42 @@ val NeogramIcons.Add: ImageVector
         ).apply {
             path(
                 stroke = SolidColor(Color(0xFFFFFFFF)),
+                strokeAlpha = 0.2f,
                 strokeLineWidth = 1.5f,
                 strokeLineCap = StrokeCap.Round
             ) {
-                moveTo(6f, 12f)
-                horizontalLineTo(18f)
+                moveTo(8f, 8f)
+                lineTo(8f, 15f)
+            }
+            path(
+                stroke = SolidColor(Color(0xFFFFFFFF)),
+                strokeAlpha = 0.2f,
+                strokeLineWidth = 1.5f,
+                strokeLineCap = StrokeCap.Round
+            ) {
+                moveTo(12f, 11f)
+                lineTo(12f, 15f)
             }
             path(
                 stroke = SolidColor(Color(0xFFFFFFFF)),
                 strokeLineWidth = 1.5f,
                 strokeLineCap = StrokeCap.Round
             ) {
-                moveTo(12f, 18f)
-                lineTo(12f, 6f)
+                moveTo(16f, 14f)
+                lineTo(16f, 15f)
             }
         }.build()
 
-        return _Add!!
+        return _Signal1!!
     }
 
 @Suppress("ObjectPropertyName")
-private var _Add: ImageVector? = null
+private var _Signal1: ImageVector? = null
 
 @Preview(showBackground = true)
 @Composable
-private fun AddPreview() {
+private fun Signal1Preview() {
     Box(modifier = Modifier.padding(12.dp)) {
-        Image(imageVector = NeogramIcons.Add, contentDescription = null)
+        Image(imageVector = NeogramIcons.Signal1, contentDescription = null)
     }
 }

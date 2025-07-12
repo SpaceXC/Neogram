@@ -33,6 +33,7 @@ import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionsScreen
 import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
+import cn.spacexc.neogram.ui.screen.settings.main.SettingsScreen
 import cn.spacexc.neogram.ui.screen.settings.sessions.SessionsScreen
 import cn.spacexc.neogram.ui.screen.splash.SplashScreen
 import cn.spacexc.neogram.ui.screen.test.UITestScreen
@@ -194,6 +195,10 @@ class MainActivity : ComponentActivity() {
 
                         composable<LockScreen> {
                             LockScreen(navController)
+                        }
+
+                        composable<SettingsScreen> {
+                            SettingsScreen(navController)
                         }
                     }
                 }
