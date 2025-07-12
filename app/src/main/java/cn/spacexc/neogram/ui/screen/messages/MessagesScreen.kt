@@ -251,9 +251,9 @@ fun SharedTransitionScope.MessagesScreen(
                         LaunchedEffect(Unit) {
                             viewModel.viewMessage(messageId)
                         }
-                        val senderIsMe =
+                        /*val senderIsMe =
                             message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
-
+*/
                         /*Text(
                             settings.toString(),
                             color = Color.White,
@@ -278,7 +278,7 @@ fun SharedTransitionScope.MessagesScreen(
                             exit = shrinkVertically() + fadeOut()
                         ) {
                             Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                                if (senderIsMe) {
+                                if (message.isOutgoing) {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -401,8 +401,7 @@ fun SharedTransitionScope.MessagesScreen(
                                             chatId,
                                             message.id,
                                             isGroupChat,
-                                            isRead,
-                                            senderIsMe
+                                            isRead
                                         )
                                     )
                                     //isInActionMode = true
@@ -412,7 +411,7 @@ fun SharedTransitionScope.MessagesScreen(
                             isNextOneContinuous = isNextOneContinuous,
                             messages = viewModel.messages + viewModel.messagesNeeded,
                             isRead = isRead,
-                            senderIsMe = senderIsMe,
+                            senderIsMe = /*senderIsMe*/message.isOutgoing,
                             settings = settings,
                             onVibrate = {
                                 viewModel.vibrate()

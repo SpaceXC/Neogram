@@ -191,8 +191,7 @@ fun SharedTransitionScope.MinimalistMessageItem(
             }
             MessageContent(
                 animatedContentScope = animatedContentScope,
-                content = message.content,
-                messageId = message.id,
+                message = message,
                 users = users,
                 navController = navController,
                 senderColor = userAccentColor?.nameColor ?: Color.White,

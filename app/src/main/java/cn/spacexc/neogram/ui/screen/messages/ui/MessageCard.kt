@@ -218,10 +218,16 @@ fun SharedTransitionScope.MessageCard(
                     }
                 ) {
                     when (message.content) {
-                        is TdApi.MessageCall -> {
+                        /*is TdApi.MessageCall -> {
                             val messageCall = message.content as TdApi.MessageCall
-                            CallMessageCard(messageCall = messageCall)
-                        }
+                            CallMessageCard(
+                                messageCall = messageCall,
+                                isOutgoing = message.isOutgoing,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                timestamp = message.date * 1000L
+                            )
+                        }*/
+
                         else -> {
                             if (isMinimalist) {
                                 MinimalistMessageItem(
@@ -243,8 +249,7 @@ fun SharedTransitionScope.MessageCard(
                                     settings = settings,
                                     onLocateToRepliedMessage = onLocateToMessage
                                 )
-                            }
-                            else {
+                            } else {
                                 BubbledMessageItem(
                                     isGroupChat = isGroupChat,
                                     isPreviousOneContinuous = isPreviousOneContinuous,

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -35,8 +36,7 @@ import org.drinkless.tdlib.TdApi
 @Composable
 fun SharedTransitionScope.MessageContent(
     animatedContentScope: AnimatedContentScope,
-    content: TdApi.MessageContent,
-    messageId: Long,
+    message: TdApi.Message,
     users: Map<Long, TdApi.User>,
     navController: NavController,
     senderColor: Color,
@@ -44,6 +44,7 @@ fun SharedTransitionScope.MessageContent(
     settings: NeogramSettings,
     senderIsMe: Boolean
 ) {
+    val content = remember { message.content }
     /**
      * MessageText.CONSTRUCTOR, //WIP
      * MessageAnimation.CONSTRUCTOR,
@@ -138,7 +139,7 @@ fun SharedTransitionScope.MessageContent(
                     animatedContentScope,
                     navController,
                     senderColor = senderColor,
-                    messageId = messageId
+                    messageId = message.id
                 )
             }
         }
@@ -154,7 +155,7 @@ fun SharedTransitionScope.MessageContent(
                     .fillMaxWidth(0.6f)
                     .aspectRatio(aspectRatio),
                 navController = navController,
-                id = messageId.toString()
+                id = message.id.toString()
             )
             if (content.caption.text.isNotEmpty()) {
                 TgRichText(
@@ -179,7 +180,7 @@ fun SharedTransitionScope.MessageContent(
                     .fillMaxWidth(0.6f)
                     .aspectRatio(aspectRatio),
                 navController = navController,
-                messageId.toString()
+                message.id.toString()
             )
         }
 
@@ -191,7 +192,7 @@ fun SharedTransitionScope.MessageContent(
                     .fillMaxWidth(0.6f)
                     .aspectRatio(aspectRatio),
                 navController,
-                messageId.toString()
+                message.id.toString()
             )
         }
 
@@ -205,7 +206,7 @@ fun SharedTransitionScope.MessageContent(
                         .fillMaxWidth(0.6f)
                         .aspectRatio(aspectRatio),
                     navController,
-                    messageId.toString()
+                    message.id.toString()
                 )
             }
         }
@@ -263,6 +264,15 @@ fun SharedTransitionScope.MessageContent(
             }
         }
 
+        is TdApi.MessageCall -> {
+            val messageCall = content
+            CallMessageCard(
+                messageCall = messageCall,
+                isOutgoing = message.isOutgoing,
+                modifier = Modifier,
+                timestamp = message.date * 1000L
+            )
+        }
 
         else -> {
             Text(

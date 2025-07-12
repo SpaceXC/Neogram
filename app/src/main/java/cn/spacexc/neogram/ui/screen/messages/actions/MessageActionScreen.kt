@@ -29,10 +29,8 @@ data class MessageActionScreen(
     val chatId: Long,
     val messageId: Long,
     val isGroupChat: Boolean,
-    val isRead: Boolean,
-    val senderIsMe: Boolean,
-
-    )
+    val isRead: Boolean
+)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -42,7 +40,6 @@ fun SharedTransitionScope.MessageActionsScreen(
     animatedContentScope: AnimatedContentScope,
     isGroupChat: Boolean,
     isRead: Boolean,
-    senderIsMe: Boolean
 ) {
     val viewModel = viewModel { MessageActionsViewModel(chatId, messageId) }
     val users by UserRepository.users.collectAsState()
@@ -58,8 +55,6 @@ fun SharedTransitionScope.MessageActionsScreen(
                 .padding(top = it)
         ) {
             viewModel.currentMessage?.let { message ->
-                val senderIsMe =
-                    message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
                 MessageCard(
                     animatedContentScope = animatedContentScope,
                     isGroupChat = isGroupChat,
@@ -70,7 +65,7 @@ fun SharedTransitionScope.MessageActionsScreen(
                     isNextOneContinuous = false,
                     messages = viewModel.messagesNeeded,
                     isRead = isRead,
-                    senderIsMe = senderIsMe,
+                    senderIsMe = message.isOutgoing,
                     settings = settings,
                     onVibrate = {},
                     navController = navController,

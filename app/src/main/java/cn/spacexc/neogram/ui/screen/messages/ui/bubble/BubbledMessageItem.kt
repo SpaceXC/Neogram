@@ -121,8 +121,7 @@ fun SharedTransitionScope.BubbledMessageItem(
                         }
                         MessageContent(
                             animatedContentScope = animatedContentScope,
-                            content = message.content,
-                            messageId = message.id,
+                            message = message,
                             users = users,
                             navController = navController,
                             senderColor = usernameColor,
@@ -173,8 +172,7 @@ fun SharedTransitionScope.BubbledMessageItem(
                 Box {
                     MessageContent(
                         animatedContentScope = animatedContentScope,
-                        content = message.content,
-                        messageId = message.id,
+                        message = message,
                         users = users,
                         navController = navController,
                         senderColor = usernameColor,
