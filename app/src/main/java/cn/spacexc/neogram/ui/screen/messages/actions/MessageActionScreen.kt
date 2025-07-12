@@ -18,22 +18,31 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.settings.NeogramSettings
+import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
 import cn.spacexc.neogram.ui.theme.TitleFrame
+import cn.spacexc.telegram.ui.component.clickAlpha
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 
 @Serializable
 data class MessageActionScreen(
     val chatId: Long,
-    val messageId: Long
-)
+    val messageId: Long,
+    val isGroupChat: Boolean,
+    val isRead: Boolean,
+    val senderIsMe: Boolean,
+
+    )
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.MessageActionsScreen(
     chatId: Long, messageId: Long,
     navController: NavController,
-    animatedContentScope: AnimatedContentScope
+    animatedContentScope: AnimatedContentScope,
+    isGroupChat: Boolean,
+    isRead: Boolean,
+    senderIsMe: Boolean
 ) {
     val viewModel = viewModel { MessageActionsViewModel(chatId, messageId) }
     val users by UserRepository.users.collectAsState()
@@ -51,30 +60,23 @@ fun SharedTransitionScope.MessageActionsScreen(
             viewModel.currentMessage?.let { message ->
                 val senderIsMe =
                     message.senderId is TdApi.MessageSenderUser && (message.senderId as TdApi.MessageSenderUser).userId == currentUserId
-                val isRead = message.sendingState
-                /*MessageCard(
+                MessageCard(
                     animatedContentScope = animatedContentScope,
-                    isGroupChat = false,//currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
+                    isGroupChat = isGroupChat,
                     users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
                     chats = chats,
-                    modifier = Modifier,
                     message = message,
                     isPreviousOneContinuous = false,
                     isNextOneContinuous = false,
-                    messages = emptyMap(),
-                    isRead = null,
+                    messages = viewModel.messagesNeeded,
+                    isRead = isRead,
                     senderIsMe = senderIsMe,
                     settings = settings,
-                    onVibrate = {
-
-                    },
-                    navController = navController
-                ) { senderName, replyContent ->
-
-                }*/
-                Row {
-
-                }
+                    onVibrate = {},
+                    navController = navController,
+                    onLocateToMessage = { },
+                    onReplyMessage = { _, _ -> }
+                )
             }
         }
     }

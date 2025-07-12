@@ -217,44 +217,53 @@ fun SharedTransitionScope.MessageCard(
                         )
                     }
                 ) {
-                    if (isMinimalist) {
-                        MinimalistMessageItem(
-                            isGroupChat = isGroupChat,
-                            isPreviousOneContinuous = isPreviousOneContinuous,
-                            isNextOneContinuous = isNextOneContinuous,
-                            message = message,
-                            username = name,
-                            userAccentColor = accentColor,
-                            userPhoto = photoFile,
-                            userPhotoThumbnail = photoThumbnail,
-                            chats = chats,
-                            users = users,
-                            messages = messages,
-                            senderIsMe = senderIsMe,
-                            isRead = isRead,
-                            animatedContentScope = animatedContentScope,
-                            navController = navController,
-                            settings = settings,
-                            onLocateToRepliedMessage = onLocateToMessage
-                        )
-                    } else {
-                        BubbledMessageItem(
-                            isGroupChat = isGroupChat,
-                            isPreviousOneContinuous = isPreviousOneContinuous,
-                            isNextOneContinuous = isNextOneContinuous,
-                            message = message,
-                            username = name,
-                            usernameColor = accentColor?.nameColor ?: Color.White,
-                            chats = chats,
-                            users = users,
-                            messages = messages,
-                            senderIsMe = senderIsMe,
-                            isRead = isRead,
-                            animatedContentScope = animatedContentScope,
-                            navController = navController,
-                            settings = settings,
-                            onLocateToRepliedMessage = onLocateToMessage
-                        )
+                    when (message.content) {
+                        is TdApi.MessageCall -> {
+                            val messageCall = message.content as TdApi.MessageCall
+                            CallMessageCard(messageCall = messageCall)
+                        }
+                        else -> {
+                            if (isMinimalist) {
+                                MinimalistMessageItem(
+                                    isGroupChat = isGroupChat,
+                                    isPreviousOneContinuous = isPreviousOneContinuous,
+                                    isNextOneContinuous = isNextOneContinuous,
+                                    message = message,
+                                    username = name,
+                                    userAccentColor = accentColor,
+                                    userPhoto = photoFile,
+                                    userPhotoThumbnail = photoThumbnail,
+                                    chats = chats,
+                                    users = users,
+                                    messages = messages,
+                                    senderIsMe = senderIsMe,
+                                    isRead = isRead,
+                                    animatedContentScope = animatedContentScope,
+                                    navController = navController,
+                                    settings = settings,
+                                    onLocateToRepliedMessage = onLocateToMessage
+                                )
+                            }
+                            else {
+                                BubbledMessageItem(
+                                    isGroupChat = isGroupChat,
+                                    isPreviousOneContinuous = isPreviousOneContinuous,
+                                    isNextOneContinuous = isNextOneContinuous,
+                                    message = message,
+                                    username = name,
+                                    usernameColor = accentColor?.nameColor ?: Color.White,
+                                    chats = chats,
+                                    users = users,
+                                    messages = messages,
+                                    senderIsMe = senderIsMe,
+                                    isRead = isRead,
+                                    animatedContentScope = animatedContentScope,
+                                    navController = navController,
+                                    settings = settings,
+                                    onLocateToRepliedMessage = onLocateToMessage
+                                )
+                            }
+                        }
                     }
                 }
             }

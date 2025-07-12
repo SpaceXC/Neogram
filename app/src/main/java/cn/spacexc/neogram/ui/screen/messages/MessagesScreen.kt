@@ -75,6 +75,7 @@ import cn.spacexc.neogram.ui.icons.Edit
 import cn.spacexc.neogram.ui.icons.Microphone
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.screen.forward.ForwardMessageScreen
+import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
 import cn.spacexc.neogram.ui.screen.messages.ui.isDisplayedAsSmallCard
@@ -383,21 +384,34 @@ fun SharedTransitionScope.MessagesScreen(
                                 }
                             }
                         }
+                        val isGroupChat =
+                            remember { currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup) }
+                        val isRead =
+                            remember { messageId <= (lastReadOutboxMessage ?: (messageId + 1)) }
                         MessageCard(
                             animatedContentScope = animatedContentScope,
-                            isGroupChat = currentChat?.type != null && (currentChat.type is TdApi.ChatTypeBasicGroup || currentChat.type is TdApi.ChatTypeSupergroup),
+                            isGroupChat = isGroupChat,
                             users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
                             chats = chats,
                             modifier = Modifier
                                 .animateItem()
                                 .clickAlpha(enabled = !isInActionMode, onLongClick = {
-                                    isInActionMode = true
+                                    navController.navigate(
+                                        MessageActionScreen(
+                                            chatId,
+                                            message.id,
+                                            isGroupChat,
+                                            isRead,
+                                            senderIsMe
+                                        )
+                                    )
+                                    //isInActionMode = true
                                 }),
                             message = message,
                             isPreviousOneContinuous = isPreviousOneContinuous,
                             isNextOneContinuous = isNextOneContinuous,
-                            messages = viewModel.messages,
-                            isRead = messageId <= (lastReadOutboxMessage ?: (messageId + 1)),
+                            messages = viewModel.messages + viewModel.messagesNeeded,
+                            isRead = isRead,
                             senderIsMe = senderIsMe,
                             settings = settings,
                             onVibrate = {
@@ -420,6 +434,17 @@ fun SharedTransitionScope.MessagesScreen(
                                     replyContent
                                 )
                             )
+                        }
+                        LaunchedEffect(Unit) {
+                            if (message.replyTo is TdApi.MessageReplyToMessage) {
+                                val replyTo = message.replyTo as TdApi.MessageReplyToMessage
+                                TdClient.send(
+                                    TdApi.GetMessage(replyTo.chatId, replyTo.messageId),
+                                    { replyMessage ->
+                                        if (replyMessage is TdApi.Message) viewModel.messagesNeeded[replyTo.messageId] =
+                                            replyMessage
+                                    })
+                            }
                         }
                     }
 

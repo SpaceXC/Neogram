@@ -8,6 +8,7 @@ import android.os.VibratorManager
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -50,6 +51,8 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
     } else {
         application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     }
+
+    var messagesNeeded = mutableStateMapOf<Long, TdApi.Message>()   //为了一些被回复的但是还没有加载到的消息
 
     init {
         TdClient.send(TdApi.OpenChat(chatId))

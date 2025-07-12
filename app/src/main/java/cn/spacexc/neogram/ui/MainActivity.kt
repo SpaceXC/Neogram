@@ -150,12 +150,15 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<MessageActionScreen> {
-                            val (chatId, messageId) = it.toRoute<MessageActionScreen>()
+                            val (chatId, messageId, isGroupChat, isRead, senderIsMe) = it.toRoute<MessageActionScreen>()
                             MessageActionsScreen(
-                                chatId,
-                                messageId,
-                                navController,
-                                this
+                                chatId = chatId,
+                                messageId = messageId,
+                                navController = navController,
+                                animatedContentScope = this,
+                                isGroupChat = isGroupChat,
+                                isRead = isRead,
+                                senderIsMe = senderIsMe
                             )
                         }
 

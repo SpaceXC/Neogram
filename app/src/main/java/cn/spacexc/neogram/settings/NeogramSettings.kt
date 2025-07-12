@@ -53,7 +53,7 @@ object NeogramSettings {
 
     @Composable
     fun neogramSettings(): State<NeogramSettings> =
-        dataFlow.collectAsState(NeogramSettings.getDefaultInstance())
+        dataFlow.collectAsState(data)
 }
 
 suspend fun Context.updateConfiguration(newConfiguration: NeogramSettings.() -> NeogramSettings) {
