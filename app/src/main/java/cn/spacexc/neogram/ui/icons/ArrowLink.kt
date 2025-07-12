@@ -13,13 +13,13 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-val NeogramIcons.Add: ImageVector
+val NeogramIcons.ArrowLink: ImageVector
     get() {
-        if (_Add != null) {
-            return _Add!!
+        if (_ArrowLink != null) {
+            return _ArrowLink!!
         }
-        _Add = ImageVector.Builder(
-            name = "Add",
+        _ArrowLink = ImageVector.Builder(
+            name = "ArrowLink",
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
@@ -30,29 +30,23 @@ val NeogramIcons.Add: ImageVector
                 strokeLineWidth = 1.5f,
                 strokeLineCap = StrokeCap.Round
             ) {
-                moveTo(6f, 12f)
-                horizontalLineTo(18f)
-            }
-            path(
-                stroke = SolidColor(Color(0xFFFFFFFF)),
-                strokeLineWidth = 1.5f,
-                strokeLineCap = StrokeCap.Round
-            ) {
-                moveTo(12f, 18f)
-                lineTo(12f, 6f)
+                moveTo(8.133f, 7.461f)
+                lineTo(14.933f, 7.479f)
+                curveTo(16.037f, 7.482f, 16.93f, 8.379f, 16.927f, 9.484f)
+                lineTo(16.91f, 16.283f)
             }
         }.build()
 
-        return _Add!!
+        return _ArrowLink!!
     }
 
 @Suppress("ObjectPropertyName")
-private var _Add: ImageVector? = null
+private var _ArrowLink: ImageVector? = null
 
 @Preview(showBackground = true)
 @Composable
-private fun AddPreview() {
+private fun ArrowLinkPreview() {
     Box(modifier = Modifier.padding(12.dp)) {
-        Image(imageVector = NeogramIcons.Add, contentDescription = null)
+        Image(imageVector = NeogramIcons.ArrowLink, contentDescription = null)
     }
 }

@@ -40,6 +40,7 @@ import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.icons.Android
 import cn.spacexc.neogram.ui.icons.ApplePhone
 import cn.spacexc.neogram.ui.icons.AppleTablet
+import cn.spacexc.neogram.ui.icons.Laptop
 import cn.spacexc.neogram.ui.icons.NeoDevice
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.icons.Terminate
@@ -70,15 +71,15 @@ val androidDevice = DeviceIcon(
 )
 val iphoneDevice = DeviceIcon(NeogramIcons.ApplePhone, Color(36, 36, 36), Color(61, 61, 61))
 val ipadDevice = DeviceIcon(NeogramIcons.AppleTablet, Color(36, 36, 36), Color(61, 61, 61))
+val laptopDevice = DeviceIcon(NeogramIcons.Laptop, Color(36, 36, 36), Color(61, 61, 61))
 
 fun getDeviceIcon(session: TdApi.Session): DeviceIcon {
     return when (session.platform.lowercase()) {
         "android" -> androidDevice
-        "macos" -> ipadDevice
+        "macos" -> laptopDevice
         "ios" -> {
             if (session.deviceModel.lowercase().contains("phone")) iphoneDevice else ipadDevice
         }
-
         "windows" -> windowsDevice
         else -> neoDevice
     }
