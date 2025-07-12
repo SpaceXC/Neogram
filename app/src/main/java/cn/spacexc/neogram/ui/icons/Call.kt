@@ -19,31 +19,31 @@ val NeogramIcons.Call: ImageVector
         }
         _Call = ImageVector.Builder(
             name = "Call",
-            defaultWidth = 20.dp,
-            defaultHeight = 20.dp,
-            viewportWidth = 20f,
-            viewportHeight = 20f
+            defaultWidth = 22.dp,
+            defaultHeight = 23.dp,
+            viewportWidth = 22f,
+            viewportHeight = 23f
         ).apply {
             path(
                 stroke = SolidColor(Color(0xFFFFFFFF)),
-                strokeLineWidth = 1.29556f
+                strokeLineWidth = 1.42512f
             ) {
-                moveTo(3.711f, 4.406f)
-                curveTo(3.975f, 4.033f, 4.707f, 3.561f, 5.238f, 3.249f)
-                curveTo(5.583f, 3.046f, 6.018f, 3.13f, 6.28f, 3.433f)
-                lineTo(8.084f, 5.519f)
-                curveTo(8.313f, 5.783f, 8.36f, 6.158f, 8.204f, 6.47f)
-                lineTo(7.429f, 8.019f)
-                curveTo(7.27f, 8.337f, 7.322f, 8.72f, 7.56f, 8.984f)
-                lineTo(10.464f, 12.21f)
-                curveTo(10.787f, 12.569f, 11.343f, 12.593f, 11.72f, 12.291f)
-                curveTo(12.045f, 12.029f, 12.439f, 11.741f, 12.78f, 11.569f)
-                curveTo(13.52f, 11.197f, 13.891f, 11.137f, 14.631f, 11.569f)
-                curveTo(15.371f, 12.001f, 16.667f, 13.296f, 16.667f, 14.413f)
-                curveTo(16.667f, 15.53f, 15.425f, 15.887f, 14.066f, 16.141f)
-                curveTo(12.707f, 16.394f, 10.881f, 15.411f, 9.524f, 14.413f)
-                curveTo(8.167f, 13.415f, 4.282f, 9.171f, 3.711f, 7.742f)
-                curveTo(3.14f, 6.312f, 3.279f, 5.017f, 3.711f, 4.406f)
+                moveTo(4.082f, 5.047f)
+                curveTo(4.372f, 4.637f, 5.178f, 4.117f, 5.762f, 3.774f)
+                curveTo(6.141f, 3.551f, 6.62f, 3.643f, 6.908f, 3.976f)
+                lineTo(8.893f, 6.271f)
+                curveTo(9.144f, 6.561f, 9.196f, 6.974f, 9.024f, 7.317f)
+                lineTo(8.172f, 9.021f)
+                curveTo(7.997f, 9.371f, 8.054f, 9.792f, 8.316f, 10.082f)
+                lineTo(11.51f, 13.631f)
+                curveTo(11.866f, 14.026f, 12.477f, 14.053f, 12.892f, 13.72f)
+                curveTo(13.25f, 13.432f, 13.683f, 13.115f, 14.058f, 12.926f)
+                curveTo(14.872f, 12.516f, 15.28f, 12.451f, 16.094f, 12.926f)
+                curveTo(16.908f, 13.401f, 18.333f, 14.826f, 18.333f, 16.055f)
+                curveTo(18.333f, 17.283f, 16.968f, 17.676f, 15.473f, 17.955f)
+                curveTo(13.977f, 18.233f, 11.969f, 17.152f, 10.476f, 16.055f)
+                curveTo(8.983f, 14.957f, 4.71f, 10.288f, 4.082f, 8.716f)
+                curveTo(3.454f, 7.143f, 3.607f, 5.718f, 4.082f, 5.047f)
                 close()
             }
         }.build()

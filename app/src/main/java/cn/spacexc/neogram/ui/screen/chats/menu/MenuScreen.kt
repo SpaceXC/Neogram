@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,21 +57,28 @@ import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
 import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.component.TgUserAvatar
+import cn.spacexc.neogram.ui.icons.Account
+import cn.spacexc.neogram.ui.icons.AccountBox
+import cn.spacexc.neogram.ui.icons.Call
+import cn.spacexc.neogram.ui.icons.Edit
+import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.icons.Saved
+import cn.spacexc.neogram.ui.icons.Settings
+import cn.spacexc.neogram.ui.screen.settings.main.SettingsItem
+import cn.spacexc.neogram.ui.screen.settings.main.SettingsScreen
 import cn.spacexc.neogram.ui.theme.InputBarGray
+import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
+import cn.spacexc.telegram.ui.component.clickVfx
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topPadding: Dp) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
-    val settings by neogramSettings()
     val users by UserRepository.users.collectAsState()
     val currentUserId by UserRepository.currentUserId.collectAsState()
-    var tdlibVersion by remember { mutableStateOf("") }
     var containerWidth by remember { mutableStateOf(0.dp) }
     var containerWidthPx by remember { mutableIntStateOf(0) }
     val scrollState = rememberScrollState()
@@ -79,14 +88,9 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
             scrollState.value > containerWidthPx - with(localDensity) { topPadding.toPx() * 2 }
         }
     } //滚动超过一定界限的时候切换头像样式
-    LaunchedEffect(Unit) {
-        TdClient.send(TdApi.GetOption("version"), {
-            tdlibVersion = (it as TdApi.OptionValueString).value
-        }, {
-            tdlibVersion = it.toString()
-        })
-    }
-    Column(modifier = modifier.verticalScroll(scrollState)) {
+    Column(
+        modifier = modifier.verticalScroll(scrollState)
+    ) {
         /*Box(
             modifier =
             //.padding(bottom = 20.dp)
@@ -109,10 +113,12 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                 ) { hasPassed ->
                     Box {
                         if (photo != null && !hasPassed) {
-                            Box(modifier = Modifier.sharedElement(
-                                rememberSharedContentState("avatar"),
-                                this@AnimatedContent
-                            )) {
+                            Box(
+                                modifier = Modifier.sharedElement(
+                                    rememberSharedContentState("avatar"),
+                                    this@AnimatedContent
+                                )
+                            ) {
                                 TgImage(
                                     photo.big,
                                     photo.minithumbnail?.data,
@@ -185,7 +191,12 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                         rememberSharedContentState("@username"),
                                         this@AnimatedContent
                                     ),
-                                    style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = 0.7f), blurRadius = 15f))
+                                    style = TextStyle(
+                                        shadow = Shadow(
+                                            Color.Black.copy(alpha = 0.7f),
+                                            blurRadius = 15f
+                                        )
+                                    )
                                 )
                                 Text(
                                     "@${currentUser.usernames?.activeUsernames?.firstOrNull() ?: ""}",
@@ -193,12 +204,17 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                     fontSize = 12.sp,
                                     modifier = Modifier.alpha(0.7f),
                                     fontFamily = miSans,
-                                    style = TextStyle(shadow = Shadow(Color.Black.copy(alpha = 0.7f), blurRadius = 15f))
+                                    style = TextStyle(
+                                        shadow = Shadow(
+                                            Color.Black.copy(alpha = 0.7f),
+                                            blurRadius = 15f
+                                        )
+                                    )
                                 )
                             }
                         } else {
                             NeoCard(
-                                shape = RoundedCornerShape(40),
+                                shape = RoundedCornerShape(20.dp),
                                 background = InputBarGray,
                                 borderAlpha = 0.1f,
                                 modifier = Modifier
@@ -257,8 +273,73 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
             }
             //}
         }
-        Text("111", color = Color.White)
-        Spacer(Modifier.height(200.dp))
+        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SettingsItem(
+                leadingIcon = NeogramIcons.Edit,
+                itemName = "新建对话",
+                background = NeoBlue,
+                borderAlpha = 0.2f,
+                shape = RoundedCornerShape(18.dp)
+            )
+            SettingsItem(
+                leadingIcon = NeogramIcons.AccountBox,
+                itemName = "联系人",
+                shape = RoundedCornerShape(18.dp)
+            )
+            SettingsItem(
+                leadingIcon = NeogramIcons.Call,
+                itemName = "通话",
+                shape = RoundedCornerShape(18.dp)
+            )
+            SettingsItem(
+                leadingIcon = NeogramIcons.Saved,
+                itemName = "保存的消息",
+                shape = RoundedCornerShape(18.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+                NeoCard(
+                    shape = RoundedCornerShape(40),
+                    background = InputBarGray,
+                    borderAlpha = 0.03f,
+                    modifier = Modifier.weight(1f).clickVfx {
+                        navController.navigate(SettingsScreen)
+                    }
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            NeogramIcons.Settings,
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(24.dp)
+                                .align(Alignment.Center)
+                        )
+
+                    }
+                }
+                NeoCard(
+                    shape = RoundedCornerShape(40),
+                    background = InputBarGray,
+                    borderAlpha = 0.03f,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            NeogramIcons.Account,
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(24.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
+                }
+            }
+        }
+        /*Text("111", color = Color.White)
+        Spacer(Modifier.height(200.dp))*/
     }
     /*Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         Text(

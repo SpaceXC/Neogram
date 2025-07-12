@@ -19,6 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cn.spacexc.neogram.data.device.SessionsRepository
 import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.icons.Android
 import cn.spacexc.neogram.ui.icons.ApplePhone
@@ -45,6 +49,7 @@ import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.formatTimestamp
+import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 
@@ -83,7 +88,11 @@ fun getDeviceIcon(session: TdApi.Session): DeviceIcon {
 data object SessionsScreen
 
 @Composable
-fun SessionsScreen(navController: NavController, viewModel: SessionsViewModel = viewModel()) {
+fun SessionsScreen(navController: NavController) {
+    LaunchedEffect(Unit) {
+        SessionsRepository.getSessions()
+    }
+    val sessions by SessionsRepository.sessions.collectAsState()
     TitleFrame("设备", onTitleClicked = {}, onActionClicked = navController::navigateUp) {
         Column(
             modifier = Modifier
@@ -92,7 +101,8 @@ fun SessionsScreen(navController: NavController, viewModel: SessionsViewModel = 
                 .padding(top = it, bottom = 8.dp)
                 .padding(horizontal = 8.dp),
         ) {
-            viewModel.sessions?.let { sessions ->
+            sessions?.let { sessions ->
+                Text("此会话", fontFamily = miSans, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color.White, modifier = Modifier.padding(bottom = 8.dp))
                 NeoCard(
                     shape = RoundedCornerShape(
                         topStart = 16.dp,
@@ -170,7 +180,7 @@ fun SessionsScreen(navController: NavController, viewModel: SessionsViewModel = 
                         }
                     }
                 }
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(6.dp))
                 NeoCard(
                     shape = RoundedCornerShape(
                         topStart = 6.dp,
@@ -179,16 +189,28 @@ fun SessionsScreen(navController: NavController, viewModel: SessionsViewModel = 
                         bottomEnd = 16.dp
                     ),
                     background = InputBarGray,
-                    borderAlpha = 0.03f
+                    borderAlpha = 0.03f,
+                    modifier = Modifier.clickVfx {
+                        //TODO Open dialog and terminate all other sessions
+                    }
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = NeogramIcons.Terminate, tint = NeoRed, contentDescription = null)
                         Text("终止所有其他会话", fontFamily = miSans, fontWeight = FontWeight.Medium, color = NeoRed)
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
-
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    "活动会话",
+                    fontFamily = miSans,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
                 sessions.sessions.filter { session -> !session.isCurrent }.forEach { session ->
                     SessionItem(session)
                     Spacer(Modifier.height(6.dp))
@@ -233,7 +255,7 @@ fun SessionItem(session: TdApi.Session) {
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier
-                        .fillMaxSize(0.6f)
+                        .fillMaxSize(0.7f)
                         .rotate(45f)
                         .offset(y = deviceIcon.verticalOffset)
                 )
