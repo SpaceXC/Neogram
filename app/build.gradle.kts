@@ -144,5 +144,7 @@ dependencies {
 
     implementation(libs.checker.qual)
 
+    implementation("com.github.wendykierp:JTransforms:3.1")
+
     implementation(libs.compose.cloudy)
 }

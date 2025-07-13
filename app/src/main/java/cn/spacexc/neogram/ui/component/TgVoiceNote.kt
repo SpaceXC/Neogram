@@ -1,11 +1,20 @@
 package cn.spacexc.neogram.ui.component
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -24,21 +33,45 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import cn.spacexc.neogram.data.file.FileRepository
+import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.icons.Pause
+import cn.spacexc.neogram.ui.icons.Play
 import cn.spacexc.neogram.ui.theme.BadgeGray
+import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.miSans
+import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.currentProgressFlow
+import cn.spacexc.neogram.utils.decodeToPCM
+import cn.spacexc.neogram.utils.extractWaveformUsingJTransforms
 import cn.spacexc.neogram.utils.formatFileSize
 import cn.spacexc.neogram.utils.toMinSec
+import cn.spacexc.telegram.ui.component.clickVfx
 import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
 import org.drinkless.tdlib.TdApi
 import java.io.File
@@ -73,9 +106,28 @@ fun TgVoiceNote(file: TdApi.File, modifier: Modifier) {
             )
         }
     } else {
-        Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            modifier = modifier
+                .background(
+                    NeoBlue,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 5.dp,
+                        bottomEnd = 12.dp
+                    )
+                )
+                .padding(10.dp),
+            horizontalAlignment = Alignment.End
+        ) {
             var duration by remember { mutableLongStateOf(0L) }
             var isReady by remember { mutableStateOf(false) }
+
+            var lowFreq by remember { mutableStateOf(emptyList<Float>()) }
+            var highFreq by remember { mutableStateOf(emptyList<Float>()) }
+
+            val drawProgress by animateFloatAsState(if (lowFreq.isEmpty()) 0f else 1f, tween(500))
+
             LaunchedEffect(Unit) {
                 val player = ExoPlayer.Builder(context).build()
                 exoPlayer = player
@@ -112,38 +164,210 @@ fun TgVoiceNote(file: TdApi.File, modifier: Modifier) {
                     }
                 })
             }
+            LaunchedEffect(Unit) {
+                val pcm = decodeToPCM(File(downloadState.localPath))
+                val (lowFreqPoints, highFreqPoints) = extractWaveformUsingJTransforms(pcm)
+                lowFreq = lowFreqPoints
+                highFreq = highFreqPoints
+                LogUtils.info("VoiceNote", "$lowFreq $highFreq")
+            }
+
             if (exoPlayer != null) {
                 val currentPosition by exoPlayer!!.currentProgressFlow().collectAsState(0L)
-                if (isReady) {
-                    IconButton(onClick = {
-                        if (isPlaying) exoPlayer!!.pause() else {
-                            if (isEnded) {
-                                isEnded = false
-                                exoPlayer!!.seekTo(0)
-                                exoPlayer!!.play()
-                            } else {
-                                exoPlayer!!.play()
-                            }
-                        }
-                    }) {
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (isReady) {
                         Icon(
-                            imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                            imageVector = if (isPlaying) NeogramIcons.Pause else NeogramIcons.Play,
                             contentDescription = null,
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickVfx {
+                                    if (isPlaying) exoPlayer?.pause() else exoPlayer?.play()
+                                }
+                        )
+                    } else {
+                        CircularProgressIndicator(color = NeoBlue)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .graphicsLayer {
+                                    compositingStrategy = CompositingStrategy.Offscreen
+                                }
+                                .drawWithCache {
+                                    onDrawBehind {
+                                        clipRect(right = drawProgress * size.width) {
+                                            val path = drawFreqCurve(lowFreq)
+                                            drawFreqCurve(highFreq)
+
+                                            val filledPath = Path()
+                                            filledPath.addPath(path)
+                                            filledPath.lineTo(size.width, size.height)
+                                            filledPath.lineTo(0f, size.height)
+                                            filledPath.close()
+
+                                            drawPath(
+                                                path = filledPath,
+                                                brush = Brush.verticalGradient(
+                                                    listOf(
+                                                        Color.White.copy(alpha = 0.8f),
+                                                        Color.Transparent
+                                                    )
+                                                ),
+                                                style = Fill
+                                            )
+                                        }
+                                        drawRect(
+                                            brush = Brush.verticalGradient(
+                                                0f to Color.Black,
+                                                0.65f to Color.Black,
+                                                1f to Color.Transparent
+                                            ),
+                                            blendMode = BlendMode.DstIn,
+                                        )
+                                    }
+                                }
+                        )
+                        Box(
+                            modifier = Modifier
+                                .height(30.dp)
+                                .width(2.dp)
+                                .background(Color.White, CircleShape)
                         )
                     }
-                } else {
-                    CircularProgressIndicator(color = NeoBlue)
                 }
-                Column {
-                    Text(
-                        "${currentPosition.toMinSec()}/${duration.toMinSec()}",
-                        color = Color.White,
-                        fontFamily = miSans,
-                        fontSize = 11.sp
-                    )
-                }
+
+                Text(
+                    "${currentPosition.toMinSec()}/${duration.toMinSec()}",
+                    color = Color.White,
+                    fontFamily = miSans,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
         }
     }
+}
+
+fun downsample(values: List<Float>, groupSize: Int = 4): List<Float> {
+    return values.chunked(groupSize).map { it.max() }
+}
+
+fun smooth(values: List<Float>, windowSize: Int = 7): List<Float> {
+    if (windowSize < 2 || values.size < windowSize) return values
+
+    return values.mapIndexed { i, _ ->
+        val start = (i - windowSize / 2).coerceAtLeast(0)
+        val end = (i + windowSize / 2).coerceAtMost(values.lastIndex)
+        val window = values.subList(start, end + 1)
+        window.average().toFloat()
+    }
+}
+
+fun scale(values: List<Float>): List<Float> {
+    val max = values.maxOrNull() ?: 1f
+    val fraction = 1f / max
+    return values.map { it * fraction }
+}
+
+
+fun smoothPoints(
+    points: List<Offset>,
+    alpha: Float = 0.2f  // 越小越平滑
+): List<Offset> {
+    if (points.isEmpty()) return emptyList()
+    val smoothed = mutableListOf<Offset>()
+    var prev = points.first()
+    smoothed.add(prev)
+    for (i in 1 until points.size) {
+        val current = points[i]
+        val filtered = Offset(
+            x = alpha * current.x + (1 - alpha) * prev.x,
+            y = alpha * current.y + (1 - alpha) * prev.y
+        )
+        smoothed.add(filtered)
+        prev = filtered
+    }
+    return smoothed
+}
+
+fun createSmoothPath(points: List<Offset>): Path {
+    val path = Path()
+    if (points.size < 2) return path
+
+    path.moveTo(points[0].x, points[0].y)
+
+    for (i in 1 until points.size - 2) {
+        val p0 = points[i - 1]
+        val p1 = points[i]
+        val p2 = points[i + 1]
+        val p3 = points[i + 2]
+
+        val c1 = Offset(
+            x = p1.x + (p2.x - p0.x) / 6f,
+            y = p1.y + (p2.y - p0.y) / 6f
+        )
+        val c2 = Offset(
+            x = p2.x - (p3.x - p1.x) / 6f,
+            y = p2.y - (p3.y - p1.y) / 6f
+        )
+
+        path.cubicTo(c1.x, c1.y, c2.x, c2.y, p2.x, p2.y)
+    }
+
+    return path
+}
+
+
+fun DrawScope.drawFreqCurve(freq: List<Float>): Path {
+    val downsampled = downsample(freq, groupSize = 4)
+    //val scaled = scale(smoothed)
+
+    val basePoints = downsampled.mapIndexed { index, value ->
+        val x = index.toFloat() / downsampled.size * size.width
+        val y = (1f - value.coerceIn(0f, 1f)) * size.height
+        Offset(x, y)
+    }
+    val points = buildList {
+        add(Offset(0f, this@drawFreqCurve.size.height))
+        add(Offset(0f, basePoints.firstOrNull()?.y ?: 0f))
+        addAll(basePoints)
+        add(Offset(this@drawFreqCurve.size.width, basePoints.lastOrNull()?.y ?: 0f))
+        add(Offset(this@drawFreqCurve.size.width, 0f))
+    }
+    val smoothed = smoothPoints(points)
+    val path = createSmoothPath(smoothed)
+
+
+    /*val path = Path().apply {
+        moveTo(0f, size.height)
+        lineTo(0f, basePoints.firstOrNull()?.y ?: 0f)
+        if (basePoints.isNotEmpty()) {
+            lineTo(basePoints.first().x, basePoints.first().y)
+            for (i in 1 until basePoints.size) {
+                lineTo(basePoints[i].x, basePoints[i].y)
+            }
+        }
+        lineTo(size.width, basePoints.lastOrNull()?.y ?: 0f)
+        lineTo(size.width, size.height)
+    }*/
+
+
+
+    drawPath(
+        path = path,
+        color = Color.White,
+        style = Stroke(width = 2f)
+    )
+
+    return path
 }

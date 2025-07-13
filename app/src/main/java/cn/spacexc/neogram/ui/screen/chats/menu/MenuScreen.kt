@@ -47,13 +47,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.user.UserRepository
+import cn.spacexc.neogram.proto.settings.ChatItemStyle
+import cn.spacexc.neogram.proto.settings.copy
+import cn.spacexc.neogram.settings.NeogramSettings
 import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
+import cn.spacexc.neogram.settings.updateConfiguration
 import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.component.TgUserAvatar
@@ -71,12 +76,16 @@ import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
 import cn.spacexc.telegram.ui.component.clickVfx
+import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topPadding: Dp) {
     val localDensity = LocalDensity.current
+    val context = LocalContext.current
+    val settings by neogramSettings()
+    val scope = rememberCoroutineScope()
     val users by UserRepository.users.collectAsState()
     val currentUserId by UserRepository.currentUserId.collectAsState()
     var containerWidth by remember { mutableStateOf(0.dp) }
@@ -273,7 +282,45 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
             }
             //}
         }
-        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                if (settings.chatItemStyle == ChatItemStyle.Minimalist) "Minimalist" else "Bubble",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickVfx(onClick = {
+                        scope.launch {
+                            context.updateConfiguration {
+                                copy {
+                                    chatItemStyle =
+                                        if (settings.chatItemStyle == ChatItemStyle.Minimalist) ChatItemStyle.Bubble else ChatItemStyle.Minimalist
+                                }
+                            }
+                        }
+                    }),
+                color = Color.White,
+                fontFamily = miSans,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Debug: ${settings.debug}",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickVfx(onClick = {
+                        scope.launch {
+                            context.updateConfiguration {
+                                copy {
+                                    debug = !settings.debug
+                                }
+                            }
+                        }
+                    }),
+                color = Color.White,
+                fontFamily = miSans,
+                textAlign = TextAlign.Center
+            )
             SettingsItem(
                 leadingIcon = NeogramIcons.Edit,
                 itemName = "新建对话",
@@ -296,14 +343,19 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                 itemName = "保存的消息",
                 shape = RoundedCornerShape(18.dp)
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(bottom = 6.dp)
+            ) {
                 NeoCard(
                     shape = RoundedCornerShape(40),
                     background = InputBarGray,
                     borderAlpha = 0.03f,
-                    modifier = Modifier.weight(1f).clickVfx {
-                        navController.navigate(SettingsScreen)
-                    }
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickVfx {
+                            navController.navigate(SettingsScreen)
+                        }
                 ) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         Icon(
@@ -342,61 +394,6 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
         Spacer(Modifier.height(200.dp))*/
     }
     /*Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        Text(
-            if (settings.chatItemStyle == ChatItemStyle.Minimalist) "Minimalist" else "Bubble",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickVfx(onClick = {
-                    scope.launch {
-                        context.updateConfiguration {
-                            copy {
-                                chatItemStyle =
-                                    if (settings.chatItemStyle == ChatItemStyle.Minimalist) ChatItemStyle.Bubble else ChatItemStyle.Minimalist
-                            }
-                        }
-                    }
-                }),
-            color = Color.White,
-            fontFamily = miSans,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            "Debug: ${settings.debug}",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickVfx(onClick = {
-                    scope.launch {
-                        context.updateConfiguration {
-                            copy {
-                                debug = !settings.debug
-                            }
-                        }
-                    }
-                }),
-            color = Color.White,
-            fontFamily = miSans,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            "SESSIONS",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-                .clickVfx {
-                    navController.navigate(SessionsScreen)
-                },
-            color = Color.White,
-            fontFamily = miSans,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            "tdlib version $tdlibVersion",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            color = Color.White,
-            fontFamily = miSans,
-            textAlign = TextAlign.Center
-        )
+
     }*/
 }
