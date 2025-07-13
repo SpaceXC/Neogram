@@ -41,6 +41,7 @@ import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.NeogramSettings
 import cn.spacexc.neogram.ui.component.DraggableBox
+import cn.spacexc.neogram.ui.component.DraggableBoxDirection
 import cn.spacexc.neogram.ui.component.TgImage
 import cn.spacexc.neogram.ui.screen.messages.ui.bubble.BubbledMessageItem
 import cn.spacexc.neogram.ui.screen.messages.ui.minimalist.MinimalistMessageItem
@@ -112,6 +113,7 @@ fun SharedTransitionScope.MessageCard(
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier
+                .align(Alignment.CenterEnd)
                 .size(with(localDensity) { 13.5.sp.toDp() } * 1.5f)
                 .offset(y = if (isMinimalist && !isNextOneContinuous) (-4).dp else 0.dp)
                 .alpha(progress)
@@ -203,6 +205,7 @@ fun SharedTransitionScope.MessageCard(
                     enabled = isActionEnabled,
                     modifier = Modifier.fillMaxWidth(),
                     threshold = 50f,
+                    direction = DraggableBoxDirection.SwipeToLeft,
                     onProgressChange = {
                         if (progress > 1.2) {
                             onVibrate()
@@ -218,16 +221,6 @@ fun SharedTransitionScope.MessageCard(
                     }
                 ) {
                     when (message.content) {
-                        /*is TdApi.MessageCall -> {
-                            val messageCall = message.content as TdApi.MessageCall
-                            CallMessageCard(
-                                messageCall = messageCall,
-                                isOutgoing = message.isOutgoing,
-                                modifier = Modifier.padding(vertical = 4.dp),
-                                timestamp = message.date * 1000L
-                            )
-                        }*/
-
                         else -> {
                             if (isMinimalist) {
                                 MinimalistMessageItem(
