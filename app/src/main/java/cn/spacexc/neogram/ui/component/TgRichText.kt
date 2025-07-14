@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.jetbrainsMono
 import cn.spacexc.neogram.ui.theme.miSans
+import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.processTextEntities
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.TextEntityTypeBold
@@ -24,7 +25,12 @@ import org.drinkless.tdlib.TdApi.TextEntityTypeItalic
 import org.drinkless.tdlib.TdApi.TextEntityTypeUnderline
 
 @Composable
-fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifier = Modifier, textStyle: TextStyle = TextStyle()) {
+fun TgRichText(
+    entities: List<TdApi.TextEntity>,
+    text: String,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle()
+) {
     val inlineTextContent = mutableMapOf<String, InlineTextContent>()
     val annotatedString = buildAnnotatedString {
         /**
@@ -55,46 +61,31 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifie
             entities = entities.toList(),
             text = text
         )
+
+
         textNodes.forEach { node ->
-            when (node.type) {
-                null -> {
-                    append(node.text)
+            val spanStyle = node.type.map { type ->
+                when (type) {
+                    is TextEntityTypeBold -> SpanStyle(fontWeight = FontWeight.Bold)
+
+                    is TextEntityTypeItalic -> SpanStyle(fontStyle = FontStyle.Italic)
+
+                    is TextEntityTypeUnderline -> SpanStyle(textDecoration = TextDecoration.Underline)
+
+                    is TdApi.TextEntityTypeStrikethrough -> SpanStyle(textDecoration = TextDecoration.LineThrough)
+
+                    is TdApi.TextEntityTypeSpoiler -> SpanStyle(color = Color.White.copy(alpha = 0.5f))
+
+                    is TdApi.TextEntityTypeCode -> SpanStyle(fontFamily = jetbrainsMono)
+
+                    else -> SpanStyle(/*fontWeight = FontWeight.Medium, color = NeoBlue*/)
                 }
-                is TextEntityTypeBold -> {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(node.text)
-                    }
-                }
-                is TextEntityTypeItalic -> {
-                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                        append(node.text)
-                    }
-                }
-                is TextEntityTypeUnderline -> {
-                    withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
-                        append(node.text)
-                    }
-                }
-                is TdApi.TextEntityTypeStrikethrough -> {
-                    withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) {
-                        append(node.text)
-                    }
-                }
-                is TdApi.TextEntityTypeSpoiler -> {
-                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.5f))) {
-                        append(node.text)
-                    }
-                }
-                is TdApi.TextEntityTypeCode -> {
-                    withStyle(SpanStyle(fontFamily = jetbrainsMono)) {
-                        append(node.text)
-                    }
-                }
-                else -> {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = NeoBlue)) {
-                        append(node.text)
-                    }
-                }
+            }
+
+            LogUtils.info("TextNode", "$spanStyle ${spanStyle.sum()}")
+            withStyle(spanStyle.sum()) {
+                append(node.text)
+
             }
         }
     }
@@ -110,6 +101,20 @@ fun TgRichText(entities: List<TdApi.TextEntity>, text: String, modifier: Modifie
 }
 
 @Composable
-fun TgRichText(formattedText: TdApi.FormattedText, modifier: Modifier = Modifier, textStyle: TextStyle = TextStyle()) {
+fun TgRichText(
+    formattedText: TdApi.FormattedText,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle()
+) {
     TgRichText(formattedText.entities.toList(), formattedText.text, modifier, textStyle)
+}
+
+fun List<SpanStyle>.sum(): SpanStyle {
+    if (isEmpty()) return SpanStyle()
+    var result = first()
+    forEach { style ->
+        result += style
+        LogUtils.info("spanSum", "$style")
+    }
+    return result
 }

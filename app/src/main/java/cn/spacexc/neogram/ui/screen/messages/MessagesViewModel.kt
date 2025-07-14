@@ -19,7 +19,9 @@ import cn.spacexc.neogram.data.message.MessageRepository
 import cn.spacexc.neogram.ui.screen.messages.audio.AndroidAudioRecorder
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.ToastUtils
+import cn.spacexc.neogram.utils.decodeToPCM
 import cn.spacexc.neogram.utils.deepCopy
+import cn.spacexc.neogram.utils.extractWaveformUsingJTransforms
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -27,6 +29,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.drinkless.tdlib.TdApi
 import java.io.File
+import kotlin.math.roundToInt
 
 class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessageId: Long) :
     ViewModel() {
@@ -251,33 +254,67 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
      * @param sendMessage 是否发出信息（i.e. 是因为真的要发了还是因为取消了才停止录制的
      */
     fun stopRecording(sendMessage: Boolean) {
-        if (currentFile == null) return
-        audioRecorder.stop()
-        markSelfAsNotRecording()
-        LogUtils.info("AudioRecord", "RecordCompleted ${currentFile?.path}")
-        if (sendMessage) {
-            if ((System.currentTimeMillis() - startTime) < 1000) {
-                ToastUtils.toast("录制时间太短了吧...")
-            } else {
-                val content = TdApi.InputMessageVoiceNote(
-                    TdApi.InputFileLocal(currentFile?.path),
-                    (System.currentTimeMillis() - startTime).toInt() / 1000,
-                    emptyArray<Byte>().toByteArray(),
-                    null,
-                    null
-                )
-                val action = TdApi.SendMessage(
-                    chatId,
-                    0,
-                    null,
-                    null,
-                    null,
-                    content
-                )
-                TdClient.send(action)
+        viewModelScope.launch {
+            if (currentFile == null) return@launch
+            audioRecorder.stop()
+            markSelfAsNotRecording()
+            LogUtils.info("AudioRecord", "RecordCompleted ${currentFile?.path}")
+            if (sendMessage) {
+                if ((System.currentTimeMillis() - startTime) < 1000) {
+                    ToastUtils.toast("录制时间太短了吧...")
+                } else {
+                    currentFile?.let { file ->
+                        val waveform = waveformTo5bit(file)
+                        val content = TdApi.InputMessageVoiceNote(
+                            /* voiceNote = */ TdApi.InputFileLocal(file.path),
+                            /* duration = */ (System.currentTimeMillis() - startTime).toInt() / 1000,
+                            /* waveform = */ waveform,
+                            /* caption = */ null,
+                            /* selfDestructType = */ null
+                        )
+                        val action = TdApi.SendMessage(
+                            chatId,
+                            0,
+                            null,
+                            null,
+                            null,
+                            content
+                        )
+                        TdClient.send(action)
+                    }
+                }
+            }
+            currentFile = null
+        }
+    }
+
+    suspend fun waveformTo5bit(file: File): ByteArray {
+
+        val pcm = decodeToPCM(file)
+        val (waveform, _) = extractWaveformUsingJTransforms(pcm)
+
+        val bits = waveform.map { (it * 31).toInt().coerceIn(0, 31) }
+
+        val output = mutableListOf<Byte>()
+        var buffer = 0
+        var bitPos = 0
+
+        for (value in bits) {
+            buffer = buffer or (value shl bitPos)
+            bitPos += 5
+
+            while (bitPos >= 8) {
+                output.add((buffer and 0xFF).toByte())
+                buffer = buffer shr 8
+                bitPos -= 8
             }
         }
-        currentFile = null
+
+        if (bitPos > 0) {
+            output.add((buffer and 0xFF).toByte())
+        }
+
+        return output.toByteArray()
     }
 
     fun markSelfAsRecording() {

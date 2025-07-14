@@ -173,41 +173,44 @@ fun TdApi.MessageContent?.textDescription(
     return Pair(inlineTextContent, annotatedString)
 }
 
+/**
+ * https://chatgpt.com/share/68752886-3298-800d-ab3a-0234b8f55491
+ */
 fun processTextEntities(entities: List<TdApi.TextEntity>, text: String): List<TextNode> {
-    // 1. 排序区间
-    val maxValue = text.length - 1
-    val sortedEntities = entities.sortedBy { it.offset }
-
-    // 2. 初始化结果列表和前一个结束位置
     val result = mutableListOf<TextNode>()
-    var previousEnd = -1
+    val length = text.length
 
-    // 3. 遍历每个区间，填充缺失部分
-    for (entity in sortedEntities) {
-        if (entity.offset > previousEnd + 1) {
-            // 如果当前区间起点大于上一个区间的终点 + 1，说明有缺失
-            val indexRange = (previousEnd + 1) until entity.offset
-            result.add(TextNode(null, text.substring(indexRange)))
+    // 每个位置都保存它包含的type列表
+    val typeMap = Array(length) { mutableListOf<TdApi.TextEntityType>() }
+
+    for (entity in entities) {
+        val start = entity.offset
+        val end = (entity.offset + entity.length).coerceAtMost(length)
+        for (i in start until end) {
+            typeMap[i].add(entity.type)
         }
-        // 添加当前区间
-        val textNode = TextNode(
-            entity.type,
-            text.substring(entity.offset..entity.offset + entity.length - 1)
-        )
-        result.add(textNode)
-        previousEnd = entity.offset + entity.length - 1
     }
 
-    // 4. 检查末尾是否还有缺失部分
-    if (previousEnd < maxValue) {
-        val indexRange = (previousEnd + 1)..maxValue
-        result.add(TextNode(null, text.substring(indexRange)))
+    // 按 typeList 分段切割字符串
+    var currentTypes: List<TdApi.TextEntityType>? = null
+    var segmentStart = 0
+
+    for (i in 0..length) {
+        val types = if (i < length) typeMap[i] else null
+        if (types != currentTypes) {
+            if (i > segmentStart) {
+                val segmentText = text.substring(segmentStart, i)
+                result.add(TextNode(currentTypes ?: emptyList(), segmentText))
+            }
+            segmentStart = i
+            currentTypes = types
+        }
     }
 
     return result
 }
 
 data class TextNode(
-    val type: TdApi.TextEntityType?,
+    val type: List<TdApi.TextEntityType>,
     val text: String
 )

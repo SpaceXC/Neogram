@@ -86,3 +86,6 @@
 -keep class androidx.media3.** {
     <fields>;
 }
+
+-dontwarn java.awt.geom.AffineTransform
+-dontwarn sun.misc.Cleaner

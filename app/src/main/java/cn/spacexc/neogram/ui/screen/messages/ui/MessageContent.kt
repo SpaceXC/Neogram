@@ -3,6 +3,7 @@ package cn.spacexc.neogram.ui.screen.messages.ui
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -130,8 +131,9 @@ fun SharedTransitionScope.MessageContent(
                 content.text.text,
                 textStyle = TextStyle(
                     fontSize = fontSize,
-                    textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
-                )
+                    textAlign = /*if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else*/ TextAlign.Start
+                ),
+                //modifier = Modifier.background(Color.Black)
             )
             content.linkPreview?.let {
                 LinkPreviewCard(
@@ -234,7 +236,7 @@ fun SharedTransitionScope.MessageContent(
         }
 
         is TdApi.MessageVoiceNote -> {
-            TgVoiceNote(content.voiceNote.voice, modifier = Modifier)
+            TgVoiceNote(content.voiceNote.voice, modifier = Modifier, message.isOutgoing)
             if (content.caption.text.isNotEmpty()) {
                 TgRichText(
                     content.caption.entities.toList(),

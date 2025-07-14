@@ -64,7 +64,7 @@ fun SharedTransitionScope.BubbledMessageItem(
         }
 
         val shouldMessageDisplayedInABox = message.content is TdApi.MessageText ||
-                message.content is TdApi.MessageVoiceNote ||
+                //message.content is TdApi.MessageVoiceNote ||
                 (message.content is TdApi.MessagePhoto && (message.content as TdApi.MessagePhoto).caption.text.isNotEmpty()) ||
                 (message.content is TdApi.MessageVideo && (message.content as TdApi.MessageVideo).caption.text.isNotEmpty())
 
@@ -225,9 +225,7 @@ fun SharedTransitionScope.BubbledMessageItem(
                     }
                 }
             }
-
         }
-        
         Spacer(Modifier.height(if (isNextOneContinuous) 1.dp else 8.dp))
     }
 }

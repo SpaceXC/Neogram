@@ -61,6 +61,7 @@ import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.icons.Pause
 import cn.spacexc.neogram.ui.icons.Play
 import cn.spacexc.neogram.ui.theme.BadgeGray
+import cn.spacexc.neogram.ui.theme.BubbleGray
 import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoBlue
 import cn.spacexc.neogram.ui.theme.NeoRed
@@ -75,9 +76,10 @@ import cn.spacexc.telegram.ui.component.clickVfx
 import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
 import org.drinkless.tdlib.TdApi
 import java.io.File
+import kotlin.math.hypot
 
 @Composable
-fun TgVoiceNote(file: TdApi.File, modifier: Modifier) {
+fun TgVoiceNote(file: TdApi.File, modifier: Modifier, isOutgoing: Boolean) {
     val downloadState = FileRepository.downloadList[file.id]
     var exoPlayer: ExoPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -109,7 +111,7 @@ fun TgVoiceNote(file: TdApi.File, modifier: Modifier) {
         Column(
             modifier = modifier
                 .background(
-                    NeoBlue,
+                    if (isOutgoing) NeoBlue else BubbleGray,
                     shape = RoundedCornerShape(
                         topStart = 12.dp,
                         topEnd = 12.dp,
@@ -126,7 +128,7 @@ fun TgVoiceNote(file: TdApi.File, modifier: Modifier) {
             var lowFreq by remember { mutableStateOf(emptyList<Float>()) }
             var highFreq by remember { mutableStateOf(emptyList<Float>()) }
 
-            val drawProgress by animateFloatAsState(if (lowFreq.isEmpty()) 0f else 1f, tween(500))
+            val drawProgress by animateFloatAsState(if (lowFreq.isEmpty()) 0f else 1f, tween(800))
 
             LaunchedEffect(Unit) {
                 val player = ExoPlayer.Builder(context).build()
@@ -300,73 +302,68 @@ fun smoothPoints(
     return smoothed
 }
 
-fun createSmoothPath(points: List<Offset>): Path {
+fun createCornerSmoothPath(points: List<Offset>, smoothness: Float = 0.4f): Path {
     val path = Path()
     if (points.size < 2) return path
 
     path.moveTo(points[0].x, points[0].y)
 
-    for (i in 1 until points.size - 2) {
-        val p0 = points[i - 1]
-        val p1 = points[i]
-        val p2 = points[i + 1]
-        val p3 = points[i + 2]
+    for (i in 1 until points.size - 1) {
+        val prev = points[i - 1]
+        val current = points[i]
+        val next = points[i + 1]
 
-        val c1 = Offset(
-            x = p1.x + (p2.x - p0.x) / 6f,
-            y = p1.y + (p2.y - p0.y) / 6f
+        // 方向向量
+        val dx1 = current.x - prev.x
+        val dy1 = current.y - prev.y
+        val dx2 = next.x - current.x
+        val dy2 = next.y - current.y
+
+        // 控制点距离 = 原始边长 × smoothness
+        val len1 = hypot(dx1, dy1)
+        val len2 = hypot(dx2, dy2)
+
+        val cp1 = Offset(
+            current.x - dx1 / len1 * smoothness * len1,
+            current.y - dy1 / len1 * smoothness * len1
         )
-        val c2 = Offset(
-            x = p2.x - (p3.x - p1.x) / 6f,
-            y = p2.y - (p3.y - p1.y) / 6f
+        val cp2 = Offset(
+            current.x + dx2 / len2 * smoothness * len2,
+            current.y + dy2 / len2 * smoothness * len2
         )
 
-        path.cubicTo(c1.x, c1.y, c2.x, c2.y, p2.x, p2.y)
+        path.lineTo(cp1.x, cp1.y)
+        path.quadraticBezierTo(current.x, current.y, cp2.x, cp2.y)
     }
 
+    // 最后一个点直接连回
+    path.lineTo(points.last().x, points.last().y)
     return path
 }
 
 
 fun DrawScope.drawFreqCurve(freq: List<Float>): Path {
     val downsampled = downsample(freq, groupSize = 4)
-    //val scaled = scale(smoothed)
 
     val basePoints = downsampled.mapIndexed { index, value ->
-        val x = index.toFloat() / downsampled.size * size.width
+        val x = index.toFloat() / downsampled.size.toFloat() * size.width
         val y = (1f - value.coerceIn(0f, 1f)) * size.height
         Offset(x, y)
     }
     val points = buildList {
         add(Offset(0f, this@drawFreqCurve.size.height))
-        add(Offset(0f, basePoints.firstOrNull()?.y ?: 0f))
+        //add(Offset(0f, basePoints.firstOrNull()?.y ?: 0f))
         addAll(basePoints)
-        add(Offset(this@drawFreqCurve.size.width, basePoints.lastOrNull()?.y ?: 0f))
-        add(Offset(this@drawFreqCurve.size.width, 0f))
+        //add(Offset(this@drawFreqCurve.size.width, basePoints.lastOrNull()?.y ?: 0f))
+        add(Offset(this@drawFreqCurve.size.width, this@drawFreqCurve.size.height))
     }
-    val smoothed = smoothPoints(points)
-    val path = createSmoothPath(smoothed)
 
-
-    /*val path = Path().apply {
-        moveTo(0f, size.height)
-        lineTo(0f, basePoints.firstOrNull()?.y ?: 0f)
-        if (basePoints.isNotEmpty()) {
-            lineTo(basePoints.first().x, basePoints.first().y)
-            for (i in 1 until basePoints.size) {
-                lineTo(basePoints[i].x, basePoints[i].y)
-            }
-        }
-        lineTo(size.width, basePoints.lastOrNull()?.y ?: 0f)
-        lineTo(size.width, size.height)
-    }*/
-
-
+    val path = createCornerSmoothPath(points)
 
     drawPath(
         path = path,
         color = Color.White,
-        style = Stroke(width = 2f)
+        style = Stroke(width = 1.5.dp.toPx())
     )
 
     return path
