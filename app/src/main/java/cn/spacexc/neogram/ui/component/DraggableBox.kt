@@ -89,8 +89,17 @@ fun DraggableBox(
                         },
                         onDragEnd = {
                             // 监听手指抬起事件
-                            if (actualOffset > triggerThreshold) {
-                                onTriggered()
+                            when(direction) {
+                                DraggableBoxDirection.SwipeToRight -> {
+                                    if (actualOffset > triggerThreshold) {
+                                        onTriggered()
+                                    }
+                                }
+                                DraggableBoxDirection.SwipeToLeft -> {
+                                    if (actualOffset < -triggerThreshold) {
+                                        onTriggered()
+                                    }
+                                }
                             }
                             scope.launch {
                                 animate(
