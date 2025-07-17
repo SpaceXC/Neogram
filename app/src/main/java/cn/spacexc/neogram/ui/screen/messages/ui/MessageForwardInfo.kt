@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
 import org.drinkless.tdlib.TdApi
@@ -46,7 +46,7 @@ fun MessageForwardInfo(
         fontFamily = miSans,
         fontSize = 13.sp,
         fontWeight = FontWeight.Medium,
-        color = NeoBlue,
+        color = NeoMain,
         modifier = modifier
     )
 

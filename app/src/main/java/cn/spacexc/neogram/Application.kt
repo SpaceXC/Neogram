@@ -1,12 +1,15 @@
 package cn.spacexc.neogram
 
 import android.app.Application
+import android.content.Intent
 import android.os.Build
+import android.util.Log
 import cn.spacexc.neogram.data.TdClient
 import org.drinkless.tdlib.TdApi
 import org.thunderdog.challegram.voip.NLoader
 import java.io.File
 import java.util.Locale
+import kotlin.system.exitProcess
 
 
 class Application : Application() {
@@ -18,6 +21,10 @@ class Application : Application() {
         System.loadLibrary("leveldbjni")
         System.loadLibrary("tgxjni")
         System.loadLibrary("tgcallsjni")
+
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+
+        }
     }
 
     override fun onCreate() {

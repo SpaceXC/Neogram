@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.spacexc.neogram.data.color.AccentColorRepository
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
 import org.drinkless.tdlib.TdApi
@@ -52,7 +52,7 @@ fun TgUserAvatar(
         } else {
             val accentColor = AccentColorRepository.getAccentColor(user.accentColorId)
             val brush =
-                if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                if (accentColor == null) SolidColor(NeoMain) else Brush.verticalGradient(
                     listOf(accentColor.backgroundColor, accentColor.background2Color)
                 )
             Box(
@@ -99,7 +99,7 @@ fun TgUserAvatar(
         } else {
             val accentColor = AccentColorRepository.getAccentColor(user.accentColorId)
             val brush =
-                if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                if (accentColor == null) SolidColor(NeoMain) else Brush.verticalGradient(
                     listOf(accentColor.backgroundColor, accentColor.background2Color)
                 )
             Box(
@@ -145,7 +145,7 @@ fun TgChatAvatar(
         } else {
             val accentColor = AccentColorRepository.getAccentColor(chat.accentColorId)
             val brush =
-                if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                if (accentColor == null) SolidColor(NeoMain) else Brush.verticalGradient(
                     listOf(accentColor.backgroundColor, accentColor.background2Color)
                 )
             Box(

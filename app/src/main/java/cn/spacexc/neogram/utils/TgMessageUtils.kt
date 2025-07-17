@@ -8,7 +8,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.MessageAnimatedEmoji
 import org.drinkless.tdlib.TdApi.MessageAnimation
@@ -26,7 +26,7 @@ import org.drinkless.tdlib.TdApi.MessageText
 import org.drinkless.tdlib.TdApi.MessageVideo
 import org.drinkless.tdlib.TdApi.User
 
-private val spanStyle = SpanStyle(color = NeoBlue)
+private val spanStyle = SpanStyle(color = NeoMain)
 
 fun TdApi.MessageContent?.textDescription(
     users: Map<Long, User>,

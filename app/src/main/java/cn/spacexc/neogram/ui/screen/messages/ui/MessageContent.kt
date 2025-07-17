@@ -3,7 +3,6 @@ package cn.spacexc.neogram.ui.screen.messages.ui
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +27,7 @@ import cn.spacexc.neogram.ui.component.TgRichText
 import cn.spacexc.neogram.ui.component.TgSticker
 import cn.spacexc.neogram.ui.component.TgVideo
 import cn.spacexc.neogram.ui.component.TgVoiceNote
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
 import org.drinkless.tdlib.TdApi
@@ -256,7 +255,7 @@ fun SharedTransitionScope.MessageContent(
             Column {
                 Text(
                     content.document.fileName,
-                    color = NeoBlue,
+                    color = NeoMain,
                     fontFamily = miSans,
                     fontWeight = FontWeight.Bold
                 )
@@ -282,7 +281,7 @@ fun SharedTransitionScope.MessageContent(
                     content.textDescription(
                         users, 14.sp
                     )
-                }", color = NeoBlue, modifier = Modifier.padding(horizontal = 8.dp)
+                }", color = NeoMain, modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     }

@@ -1,12 +1,9 @@
 package cn.spacexc.neogram.ui.screen.call
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -15,7 +12,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -32,22 +28,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,21 +54,18 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.call.CallHandler
 import cn.spacexc.neogram.data.call.durationFlow
-import cn.spacexc.neogram.data.chat.ChatListRepository
-import cn.spacexc.neogram.data.connection.ConnectionStateRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.component.TgUserAvatar
 import cn.spacexc.neogram.ui.icons.Call
 import cn.spacexc.neogram.ui.icons.Chat
-import cn.spacexc.neogram.ui.icons.ChatBubble
 import cn.spacexc.neogram.ui.icons.Close
 import cn.spacexc.neogram.ui.icons.Microphone
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.icons.Speaker
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
@@ -90,12 +74,7 @@ import cn.spacexc.neogram.utils.username
 import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
-import org.drinkless.tdlib.TdApi.SendCallSignalingData
-import org.thunderdog.challegram.voip.ConnectionStateListener
 import org.thunderdog.challegram.voip.VoIP
-import org.thunderdog.challegram.voip.VoIPInstance
-import org.thunderdog.challegram.voip.annotation.CallState
-import kotlin.time.Duration.Companion.milliseconds
 
 @Serializable
 data object VoiceCallScreen
@@ -130,7 +109,7 @@ fun VoiceCallScreen(navController: NavController) {
                 )
                 val ambientColor by animateColorAsState(
                     when (call.state) {
-                        is TdApi.CallStateReady, is TdApi.CallStateHangingUp -> NeoBlue
+                        is TdApi.CallStateReady, is TdApi.CallStateHangingUp -> NeoMain
                         is TdApi.CallStateError, is TdApi.CallStateDiscarded -> NeoRed
                         else -> Color.Transparent
                     }
@@ -208,15 +187,15 @@ fun VoiceCallScreen(navController: NavController) {
 
                         val textColor = when (state) {
                             is TdApi.CallStatePending -> {
-                                if (call.isOutgoing) NeoBlue else Color.White.copy(0.7f)
+                                if (call.isOutgoing) NeoMain else Color.White.copy(0.7f)
                             }
 
                             is TdApi.CallStateReady -> {
-                                if (duration < 0) NeoBlue else Color.White.copy(0.7f)
+                                if (duration < 0) NeoMain else Color.White.copy(0.7f)
                             }
 
                             is TdApi.CallStateDiscarded, is TdApi.CallStateError -> NeoRed
-                            else -> NeoBlue
+                            else -> NeoMain
                         }
 
                         Text(
@@ -312,7 +291,7 @@ fun VoiceCallScreen(navController: NavController) {
                                                             )
                                                         )
                                                     },
-                                                background = NeoBlue,
+                                                background = NeoMain,
                                                 shape = RoundedCornerShape(45)
                                             ) {
                                                 Icon(
@@ -480,7 +459,7 @@ fun VoiceCallScreen(navController: NavController) {
                                             )
                                         }
 
-                                        val microphoneButtonColor by animateColorAsState(if (isMicrophoneDisabled) InputBarGray else NeoBlue)
+                                        val microphoneButtonColor by animateColorAsState(if (isMicrophoneDisabled) InputBarGray else NeoMain)
                                         val microphoneButtonBorderAlpha by animateFloatAsState(if (isMicrophoneDisabled) 0.03f else 0.2f)
                                         NeoCard(
                                             modifier = Modifier

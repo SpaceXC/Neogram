@@ -41,7 +41,7 @@ import cn.spacexc.neogram.ui.screen.messages.ui.MessageContent
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageForwardInfo
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageReactions
 import cn.spacexc.neogram.ui.screen.messages.ui.ReplyContent
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.toDateStr
 import org.drinkless.tdlib.TdApi
@@ -88,7 +88,7 @@ fun SharedTransitionScope.MinimalistMessageItem(
                         )
                     } else {
                         val brush =
-                            if (userAccentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                            if (userAccentColor == null) SolidColor(NeoMain) else Brush.verticalGradient(
                                 listOf(
                                     userAccentColor.backgroundColor,
                                     userAccentColor.background2Color

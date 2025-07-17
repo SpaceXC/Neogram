@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import cn.spacexc.neogram.ui.theme.BubbleGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 
 @Composable
 fun ChatBubble(
@@ -33,7 +33,7 @@ fun ChatBubble(
                             bottomEnd = if (isNextOneContinuous) 3.dp else 15.dp
                         )
                     )
-                    .background(NeoBlue)
+                    .background(NeoMain)
             } else {
                 Modifier
                     .padding(end = 4.dp)

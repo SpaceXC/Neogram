@@ -2,7 +2,6 @@ package cn.spacexc.neogram.ui.screen.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,13 +24,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.spacexc.neogram.data.auth.AuthRepository
 import cn.spacexc.neogram.ui.component.NeoCard
-import cn.spacexc.neogram.ui.component.TgTextField
 import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.telegram.ui.component.TgButton
 import cn.spacexc.telegram.ui.component.clickVfx
 
 @Composable
@@ -50,7 +46,7 @@ fun PhoneNumber(viewModel: AuthViewModel) {
                 textStyle = TextStyle(fontFamily = miSans, color = Color.White),
                 lineLimits = TextFieldLineLimits.SingleLine,
                 cursorBrush = SolidColor(
-                    NeoBlue
+                    NeoMain
                 ),
                 modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp).fillMaxWidth()
             )
@@ -62,7 +58,7 @@ fun PhoneNumber(viewModel: AuthViewModel) {
                 viewModel.sendPhone(textFieldState.text.toString())
             },
             shape = RoundedCornerShape(16.dp),
-            background = NeoBlue
+            background = NeoMain
         ) {
             Row(
                 modifier = Modifier

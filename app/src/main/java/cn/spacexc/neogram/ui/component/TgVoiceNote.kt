@@ -2,12 +2,10 @@ package cn.spacexc.neogram.ui.component
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,12 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,9 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -51,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -62,9 +53,7 @@ import cn.spacexc.neogram.ui.icons.Pause
 import cn.spacexc.neogram.ui.icons.Play
 import cn.spacexc.neogram.ui.theme.BadgeGray
 import cn.spacexc.neogram.ui.theme.BubbleGray
-import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
-import cn.spacexc.neogram.ui.theme.NeoRed
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.currentProgressFlow
@@ -111,7 +100,7 @@ fun TgVoiceNote(file: TdApi.File, modifier: Modifier, isOutgoing: Boolean) {
         Column(
             modifier = modifier
                 .background(
-                    if (isOutgoing) NeoBlue else BubbleGray,
+                    if (isOutgoing) NeoMain else BubbleGray,
                     shape = RoundedCornerShape(
                         topStart = 12.dp,
                         topEnd = 12.dp,
@@ -190,7 +179,7 @@ fun TgVoiceNote(file: TdApi.File, modifier: Modifier, isOutgoing: Boolean) {
                                 }
                         )
                     } else {
-                        CircularProgressIndicator(color = NeoBlue)
+                        CircularProgressIndicator(color = NeoMain)
                     }
                     Box(
                         modifier = Modifier

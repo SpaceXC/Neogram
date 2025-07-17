@@ -18,7 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.ui.theme.parseColor
 
@@ -28,7 +28,7 @@ fun TgTextField(modifier: Modifier = Modifier, state: TextFieldState) {
         modifier = modifier
             .fillMaxWidth()
             .background(parseColor("#111111"), RoundedCornerShape(30))
-            .border(0.1.dp, color = NeoBlue, RoundedCornerShape(30))
+            .border(0.1.dp, color = NeoMain, RoundedCornerShape(30))
             .padding(vertical = 12.dp, horizontal = 10.dp)
     ) {
         BasicTextField(
@@ -36,7 +36,7 @@ fun TgTextField(modifier: Modifier = Modifier, state: TextFieldState) {
             textStyle = TextStyle(fontFamily = miSans, color = Color.White),
             lineLimits = TextFieldLineLimits.SingleLine,
             cursorBrush = SolidColor(
-                NeoBlue
+                NeoMain
             )
         )
     }

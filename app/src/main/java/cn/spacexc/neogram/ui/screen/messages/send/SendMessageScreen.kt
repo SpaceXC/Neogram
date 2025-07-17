@@ -45,7 +45,7 @@ import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.icons.AddEmoji
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.telegram.ui.component.clickVfx
@@ -105,7 +105,7 @@ fun SharedTransitionScope.SendMessageScreen(
                     }) {
                         Text(
                             props.replyMessageSenderName,
-                            color = NeoBlue,
+                            color = NeoMain,
                             fontSize = 12.sp,
                             fontFamily = miSans,
                             maxLines = 1,
@@ -140,7 +140,7 @@ fun SharedTransitionScope.SendMessageScreen(
                     },
                     modifier = Modifier.fillMaxSize(),
                     textStyle = TextStyle(fontFamily = miSans, color = Color.White),
-                    cursorBrush = SolidColor(NeoBlue),
+                    cursorBrush = SolidColor(NeoMain),
                 )
                 if (inputValue.isEmpty()) {
                     Text(
@@ -190,7 +190,7 @@ fun SharedTransitionScope.SendMessageScreen(
                             with(localDensity) { inputBarHeight = size.height.toDp() }
                         },
                     //.background(InputBarGray, CircleShape)
-                    background = NeoBlue,
+                    background = NeoMain,
                     shape = RoundedCornerShape(45)
                 ) {
                     Row(

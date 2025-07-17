@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.NeogramSettings
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
@@ -66,7 +66,7 @@ fun ReplyContent(
                 .width(3.dp)
                 .height(textHeight)
                 .background(
-                    (if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue).copy(
+                    (if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoMain).copy(
                         alpha = 0.5f
                     ), CircleShape
                 )
@@ -96,7 +96,7 @@ fun ReplyContent(
                         }
                         Text(
                             senderName,
-                            color = if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue,
+                            color = if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoMain,
                             fontSize = 12.sp,
                             fontFamily = miSans,
                             maxLines = 1,
@@ -143,7 +143,7 @@ fun ReplyContent(
                     }
                     Text(
                         senderName,
-                        color = if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoBlue,
+                        color = if (shouldBeColorful) senderColor else if (senderIsMe) Color.White else NeoMain,
                         fontSize = 12.sp,
                         fontFamily = miSans,
                         maxLines = 1,

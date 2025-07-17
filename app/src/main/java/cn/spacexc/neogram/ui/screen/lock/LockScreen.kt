@@ -1,14 +1,10 @@
 package cn.spacexc.neogram.ui.screen.lock
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -22,9 +18,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
@@ -33,7 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.ui.screen.messages.within
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.utils.ifMinus1ThenNull
 import kotlinx.serialization.Serializable
 
@@ -104,7 +97,7 @@ fun LockScreen(navController: NavController) {
 
                     val center = middlePoint(topLeftCorner, bottomRightCorner)
 
-                    val color = if (path.contains(index)) NeoBlue else Color(
+                    val color = if (path.contains(index)) NeoMain else Color(
                         217,
                         217,
                         217
@@ -133,7 +126,7 @@ fun LockScreen(navController: NavController) {
                     if (index < path.size - 1) {
                         val nextOffsetIndex = path[index + 1]
                         drawLine(
-                            NeoBlue,
+                            NeoMain,
                             start = positions[offsetIndex],
                             end = positions[nextOffsetIndex],
                             cap = StrokeCap.Round,
@@ -144,7 +137,7 @@ fun LockScreen(navController: NavController) {
 
                 if (path.isNotEmpty()) {
                     drawLine(
-                        NeoBlue,
+                        NeoMain,
                         start = positions[path.last()],
                         end = currentPosition,
                         cap = StrokeCap.Round,

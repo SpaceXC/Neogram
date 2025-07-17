@@ -38,7 +38,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -88,7 +87,7 @@ import cn.spacexc.neogram.ui.icons.People
 import cn.spacexc.neogram.ui.screen.chats.menu.MenuScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.theme.CardGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
@@ -307,7 +306,7 @@ fun ChatFolders(
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         val color by animateColorAsState(
-            if (currentFolder == 0) NeoBlue else Color.Transparent,
+            if (currentFolder == 0) NeoMain else Color.Transparent,
             tween(400)
         )
         Row(
@@ -383,7 +382,7 @@ fun SharedTransitionScope.ChatListItem(
                 } else {
                     val accentColor = chat.accentColor
                     val brush =
-                        if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                        if (accentColor == null) SolidColor(NeoMain) else Brush.verticalGradient(
                             listOf(accentColor.first, accentColor.second)
                         )
                     Box(
@@ -415,7 +414,7 @@ fun SharedTransitionScope.ChatListItem(
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .background(NeoBlue, CircleShape)
+                                .background(NeoMain, CircleShape)
                                 .padding(0.5.dp)
                         )
                     }
@@ -483,7 +482,7 @@ fun SharedTransitionScope.ChatListItem(
                         Text(
                             text = if (chat.chatAction == null || chat.chatAction?.action is ChatActionCancel) annotatedString else buildAnnotatedString {
                                 withStyle(
-                                    SpanStyle(color = NeoBlue, fontWeight = FontWeight.Medium)
+                                    SpanStyle(color = NeoMain, fontWeight = FontWeight.Medium)
                                 ) {
                                     append(chatState)
                                 }
@@ -504,7 +503,7 @@ fun SharedTransitionScope.ChatListItem(
                         modifier = Modifier
                             .height(avatarSize * 0.5f)
                             .requiredSizeIn(minWidth = avatarSize * 0.5f)
-                            .background(if (chat.isMuted) Color.Gray else NeoBlue, CircleShape)
+                            .background(if (chat.isMuted) Color.Gray else NeoMain, CircleShape)
                     ) {
 
                         Text(
@@ -530,7 +529,7 @@ fun FolderItem(
     localDensity: Density,
     selected: Boolean
 ) {
-    val color by animateColorAsState(if (selected) NeoBlue else Color.Transparent, tween(400))
+    val color by animateColorAsState(if (selected) NeoMain else Color.Transparent, tween(400))
     Row(
         modifier = modifier
             .background(CardGray, CircleShape)

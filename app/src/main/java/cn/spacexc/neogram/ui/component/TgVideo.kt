@@ -1,6 +1,7 @@
 package cn.spacexc.neogram.ui.component
 
 import android.view.TextureView
+import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.file.FileRepository
@@ -45,6 +48,7 @@ import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 import java.io.File
 
+@OptIn(UnstableApi::class)
 @Composable
 fun TgVideo(
     file: TdApi.File,
@@ -84,7 +88,11 @@ fun TgVideo(
             var exoPlayer: ExoPlayer? = remember { null }
 
             AndroidView({ TextureView(it) }, modifier = modifier) { textureView ->
-                val player = ExoPlayer.Builder(textureView.context).build()
+                val player = ExoPlayer.Builder(textureView.context)
+                    .setRenderersFactory(
+                        DefaultRenderersFactory(textureView.context)
+                        .setEnableDecoderFallback(true)
+                ).build()
                 exoPlayer = player
                 player.setVideoTextureView(textureView)
                 player.setMediaItem(MediaItem.fromUri(File(downloadState.localPath).toUri()))

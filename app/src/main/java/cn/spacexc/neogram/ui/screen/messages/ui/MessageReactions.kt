@@ -26,7 +26,7 @@ import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.ui.component.TgChatAvatar
 import cn.spacexc.neogram.ui.component.TgUserAvatar
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -53,7 +53,7 @@ fun ReactionBadge(reaction: TdApi.MessageReaction) {
         modifier = Modifier
 
             .height(size + 6.dp)
-            .background(NeoBlue.copy(alpha = 0.5f), CircleShape)
+            .background(NeoMain.copy(alpha = 0.5f), CircleShape)
             .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

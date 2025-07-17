@@ -53,7 +53,7 @@ import cn.spacexc.neogram.ui.icons.Lock
 import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.screen.chats.ChatListViewModel
 import cn.spacexc.neogram.ui.theme.CardGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.ToastUtils
@@ -166,7 +166,7 @@ fun SharedTransitionScope.ChatBriefCard(
                 } else {
                     val accentColor = chat.accentColor
                     val brush =
-                        if (accentColor == null) SolidColor(NeoBlue) else Brush.verticalGradient(
+                        if (accentColor == null) SolidColor(NeoMain) else Brush.verticalGradient(
                             listOf(accentColor.first, accentColor.second)
                         )
                     Box(
@@ -198,7 +198,7 @@ fun SharedTransitionScope.ChatBriefCard(
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .background(NeoBlue, CircleShape)
+                                .background(NeoMain, CircleShape)
                                 .padding(0.5.dp)
                         )
                     }

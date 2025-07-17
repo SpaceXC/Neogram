@@ -21,7 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -45,18 +44,15 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.copy
-import cn.spacexc.neogram.settings.NeogramSettings
 import cn.spacexc.neogram.settings.NeogramSettings.neogramSettings
 import cn.spacexc.neogram.settings.updateConfiguration
 import cn.spacexc.neogram.ui.component.NeoCard
@@ -72,12 +68,11 @@ import cn.spacexc.neogram.ui.icons.Settings
 import cn.spacexc.neogram.ui.screen.settings.main.SettingsItem
 import cn.spacexc.neogram.ui.screen.settings.main.SettingsScreen
 import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
 import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.coroutines.launch
-import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -324,7 +319,7 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
             SettingsItem(
                 leadingIcon = NeogramIcons.Edit,
                 itemName = "新建对话",
-                background = NeoBlue,
+                background = NeoMain,
                 borderAlpha = 0.2f,
                 shape = RoundedCornerShape(18.dp)
             )

@@ -33,8 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -59,7 +57,7 @@ import cn.spacexc.neogram.ui.icons.Text
 import cn.spacexc.neogram.ui.icons.Unmuted
 import cn.spacexc.neogram.ui.screen.settings.sessions.SessionsScreen
 import cn.spacexc.neogram.ui.theme.InputBarGray
-import cn.spacexc.neogram.ui.theme.NeoBlue
+import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.rgba
@@ -177,7 +175,7 @@ fun AboutCard() {
                                 withStyle(
                                     SpanStyle(
                                         fontWeight = FontWeight.Bold,
-                                        color = NeoBlue
+                                        color = NeoMain
                                     )
                                 ) {
                                     append("No.${Application.getReleaseNumber()}")

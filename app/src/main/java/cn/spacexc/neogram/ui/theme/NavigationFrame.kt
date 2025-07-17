@@ -213,7 +213,7 @@ fun TitleFrame(
                         ConnectionState.Ready -> title
                         ConnectionState.Unknown -> "网络异常"
                     },
-                    color = NeoBlue,
+                    color = NeoMain,
                     fontFamily = miSans,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.End,
