@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.parcelable)
 }
 
 android {
@@ -73,14 +74,14 @@ android {
             jniLibs.srcDirs("../tdlib/src/main/libs")
         }
     }
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64") // 你需要支持的架构
-            isUniversalApk = false // 是否生成一个包含所有ABI的APK，false表示只生成拆分的
-        }
-    }
+//    splits {
+//        abi {
+//            isEnable = false
+//            reset()
+//            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64") // 你需要支持的架构
+//            isUniversalApk = true
+//        }
+//    }
 }
 
 protobuf {
@@ -126,6 +127,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.coil.video)
+    implementation(libs.coil.network.ktor3)
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.custom.qr.generator)
     implementation(libs.accompanist.drawablepainter)
@@ -136,6 +139,8 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.zoomable)
 
+    implementation(libs.ktor.client.android)
+
     implementation(libs.androidx.datastore)
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
@@ -144,7 +149,7 @@ dependencies {
 
     implementation(libs.checker.qual)
 
-    implementation("com.github.wendykierp:JTransforms:3.1")
+    implementation(libs.jtransforms)
 
-    implementation(libs.compose.cloudy)
+
 }

@@ -83,9 +83,10 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                         val temp = messages.toMutableMap()
                         val newMessage = temp[update.messageId]?.deepCopy()
                         if (newMessage != null) {
-                            newMessage.content = update.newContent
-                            temp[update.messageId] = newMessage
+                            newMessage.content = update.newContent.deepCopy()
+                            temp[update.messageId] = newMessage.deepCopy()
                             messages = temp
+                            //messages[update.messageId] = newMessage
                         }
                     }
 
@@ -176,8 +177,8 @@ class MessagesViewModel(private val chatId: Long, private val lastReadInboxMessa
                     )
                     LogUtils.info("initMessages", "Loaded part size ${newMessages?.messages?.size}")
                     if (newMessages == null) continue
-                    var newMessagesMapPart =
-                        newMessages.messages.toList().associate { Pair(it.id, it) }
+                    val newMessagesMapPart =
+                        newMessages.messages.toList().associateBy { it.id }
                     LogUtils.info(
                         "initMessages",
                         "Have reached $lastReadInboxMessageId? ${

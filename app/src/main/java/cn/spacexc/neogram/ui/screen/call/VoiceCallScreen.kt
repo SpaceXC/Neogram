@@ -1,5 +1,7 @@
 package cn.spacexc.neogram.ui.screen.call
 
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -45,6 +47,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -85,6 +88,7 @@ const val VOIP_CONNECTION_MIN_LAYER = 65
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun VoiceCallScreen(navController: NavController) {
+    val context = LocalContext.current
     val currentCall by CallHandler.currentCall.collectAsState()
     val callInstance by CallHandler.currentInstance.collectAsState()
     val duration by (callInstance?.durationFlow()?.collectAsState(0L)
@@ -490,7 +494,10 @@ fun VoiceCallScreen(navController: NavController) {
                                                 .weight(1f)
                                                 .fillMaxWidth()
                                                 .clickVfx(onClick = {
-
+                                                    val audioManager = context.getSystemService(
+                                                        AudioManager::class.java)
+                                                    audioManager.startBluetoothSco()
+                                                    audioManager.isBluetoothScoOn = true
                                                 }),
                                             background = InputBarGray,
                                             shape = RoundedCornerShape(45),

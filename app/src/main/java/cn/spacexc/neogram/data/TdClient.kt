@@ -9,6 +9,7 @@ import cn.spacexc.neogram.data.file.FileRepository.downloadHandler
 import cn.spacexc.neogram.data.folders.FoldersRepository.foldersHandler
 import cn.spacexc.neogram.data.message.MessageRepository.messageHandler
 import cn.spacexc.neogram.data.notification.notificationHandler
+import cn.spacexc.neogram.data.sticker.StickerRepository.stickersHandler
 import cn.spacexc.neogram.data.user.UserRepository.userHandler
 import cn.spacexc.neogram.utils.LogUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,6 +37,7 @@ object TdClient {
                 foldersHandler()
                 callHandler()
                 downloadHandler()
+                stickersHandler()
             }
         }
     }

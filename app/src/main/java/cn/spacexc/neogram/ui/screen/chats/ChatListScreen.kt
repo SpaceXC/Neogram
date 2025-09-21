@@ -127,7 +127,7 @@ fun SharedTransitionScope.ChatListScreen(
         LogUtils.info("FOLDER", folders.toString())
     }
 
-    var avatarSize by remember { mutableStateOf(0.dp) }
+    val avatarSize = remember { with(localDensity) { (14 + 13).sp.toDp() + 6.dp }/*mutableStateOf(0.dp)*/ }
 
     val displayedChatList by remember {
         derivedStateOf {
@@ -241,7 +241,7 @@ fun SharedTransitionScope.ChatListScreen(
                                     chats = chats,
                                     users = users.map { Pair(it.key, it.value.tgUser) }.toMap(),
                                     animatedContentScope = animatedContentScope,
-                                    avatarSize
+                                    avatarSize = avatarSize
                                 )
                             }
                         }
@@ -260,7 +260,7 @@ fun SharedTransitionScope.ChatListScreen(
         Column(
             modifier = Modifier
                 .onGloballyPositioned {
-                    avatarSize = with(localDensity) { it.size.height.toDp() }
+                    //avatarSize = with(localDensity) { it.size.height.toDp() }
                 }
         ) {
             Text(
@@ -391,7 +391,7 @@ fun SharedTransitionScope.ChatListItem(
                             .background(brush, CircleShape)
                     ) {
                         Text(
-                            chat.title.first().uppercase(),
+                            chat.title.firstOrNull()?.uppercase() ?: "",
                             color = Color.White,
                             fontFamily = miSans,
                             fontSize = 18.sp,
@@ -498,6 +498,7 @@ fun SharedTransitionScope.ChatListItem(
                         )
                     }
                 }
+
                 if (chat.unreadCount > 0) {
                     Box(
                         modifier = Modifier
@@ -505,7 +506,6 @@ fun SharedTransitionScope.ChatListItem(
                             .requiredSizeIn(minWidth = avatarSize * 0.5f)
                             .background(if (chat.isMuted) Color.Gray else NeoMain, CircleShape)
                     ) {
-
                         Text(
                             chat.unreadCount.toString(),
                             modifier = Modifier
@@ -550,7 +550,8 @@ fun FolderItem(
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = miSans,
-            )
+            ),
+            navController = null
         )
     }
 }

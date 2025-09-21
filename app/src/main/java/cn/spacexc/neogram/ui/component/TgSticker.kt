@@ -42,8 +42,60 @@ fun SharedTransitionScope.TgSticker(
         }
 
         is TdApi.StickerFormatWebm -> {
-            TgVideo(sticker.sticker, modifier, navController, autoplay = true)
+//            TgVideo(sticker.sticker, modifier, navController, autoplay = true)
+            TgImage(animatedContentScope, sticker.sticker, null, modifier, navController, id)
         }
+
+        is TdApi.StickerFormatTgs -> {
+            var json by remember { mutableStateOf("") }
+            LaunchedEffect(Unit) {
+                if (sticker.sticker.local.path.isNotEmpty()) {
+                    json = decompressGzipAndSaveAsJson(sticker.sticker.local.path)?.readText() ?: ""
+                } else {
+                    TdClient.send(TdApi.DownloadFile(sticker.sticker.id, 1, 0, 0, true), {
+                        if (it is TdApi.File) {
+                            json = decompressGzipAndSaveAsJson(it.local.path)?.readText() ?: ""
+                        }
+                    })
+                }
+            }
+            if (json.isEmpty()) {
+                Box(modifier = modifier.shimmerPlaceHolder(true))
+            } else {
+//                Text(sticker.emoji)
+                DotLottieAnimation(
+                    source = DotLottieSource.Json(json),
+                    autoplay = true,
+                    loop = true,
+                    speed = 1f,
+                    useFrameInterpolation = false,
+                    playMode = Mode.FORWARD,
+                    modifier = modifier
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TgSticker(
+    sticker: TdApi.Sticker,
+    modifier: Modifier = Modifier,
+) {
+    /**
+    StickerFormatWebp.CONSTRUCTOR,
+    StickerFormatTgs.CONSTRUCTOR,
+    StickerFormatWebm.CONSTRUCTOR
+     */
+    when (sticker.format) {
+        is TdApi.StickerFormatWebp -> {
+            TgImage(sticker.sticker, null, modifier)
+        }
+
+        is TdApi.StickerFormatWebm -> {
+            TgImage(sticker.sticker, null, modifier)
+        }
+
 
         is TdApi.StickerFormatTgs -> {
             var json by remember { mutableStateOf("") }

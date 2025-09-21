@@ -6,5 +6,6 @@ import cn.spacexc.neogram.Application
 object ToastUtils {
     fun toast(message: String) {
         Toast.makeText(Application.getApplication(), message, Toast.LENGTH_SHORT).show()
+        //Application.toastContent = message
     }
 }

@@ -132,6 +132,7 @@ fun SharedTransitionScope.MessageContent(
                     fontSize = fontSize,
                     textAlign = /*if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else*/ TextAlign.Start
                 ),
+                navController = navController
                 //modifier = Modifier.background(Color.Black)
             )
             content.linkPreview?.let {
@@ -167,7 +168,8 @@ fun SharedTransitionScope.MessageContent(
                         textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
                     ),
                     modifier = Modifier
-                        .padding(top = 4.dp)
+                        .padding(top = 4.dp),
+                    navController = navController
                 )
             }
         }
@@ -229,7 +231,8 @@ fun SharedTransitionScope.MessageContent(
                         textAlign = if (settings.chatItemStyle == ChatItemStyle.Bubble && senderIsMe) TextAlign.End else TextAlign.Start
                     ),
                     modifier = Modifier
-                        .padding(top = 4.dp)
+                        .padding(top = 4.dp),
+                    navController = navController
                 )
             }
         }
@@ -246,7 +249,8 @@ fun SharedTransitionScope.MessageContent(
                     ),
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
-                        .padding(top = 4.dp)
+                        .padding(top = 4.dp),
+                    navController = navController
                 )
             }
         }
@@ -260,7 +264,7 @@ fun SharedTransitionScope.MessageContent(
                     fontWeight = FontWeight.Bold
                 )
                 if (content.caption.text.isNotEmpty()) {
-                    TgRichText(content.caption)
+                    TgRichText(content.caption, navController = navController)
                 }
             }
         }
