@@ -36,8 +36,31 @@ class SendMessageViewModel(
         TdClient.send(action)
     }
 
+    fun sendStickerMessage(stickerFileId: Int, width: Int, height: Int, emoji: String) {
+        val stickerFile = TdApi.InputFileId(stickerFileId)
+        val content = TdApi.InputMessageSticker(
+            stickerFile,
+            null,
+            width,
+            height,
+            emoji
+        )
+        val replyInfo = if (replyMessageId == 0L) null else TdApi.InputMessageReplyToMessage(
+            replyMessageId,
+            null
+        )
+        val action = TdApi.SendMessage(
+            chatId,
+            0,
+            replyInfo,
+            null,
+            null,
+            content
+        )
+        TdClient.send(action)
+    }
+
     fun updateTextMessage(
-        chatId: Long,
         messageId: Long,
         textContent: String,
         onSuccess: () -> Unit,

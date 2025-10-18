@@ -40,6 +40,17 @@ object MessageRepository {
                     updates.send(this)
                 }
             }
+            is TdApi.UpdateMessageUnreadReactions -> {
+                LogUtils.info("REACTION!", "$unreadReactions")
+                if(subscribers.contains(chatId)) {
+                    updates.send(this)
+                }
+            }
+            is TdApi.UpdateMessageEdited -> {
+                if(subscribers.contains(chatId)) {
+                    updates.send(this)
+                }
+            }
         }
     }
 

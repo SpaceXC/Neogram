@@ -1,7 +1,6 @@
 package cn.spacexc.neogram.ui.component
 
 import android.graphics.BitmapFactory
-import android.graphics.RenderEffect
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -33,7 +32,7 @@ import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.formatFileSize
 import cn.spacexc.telegram.ui.component.clickAlpha
 import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
-import coil.transform.Transformation
+import coil3.transform.Transformation
 import org.drinkless.tdlib.TdApi.DownloadFile
 import org.drinkless.tdlib.TdApi.File
 import java.util.UUID
@@ -49,7 +48,7 @@ fun SharedTransitionScope.TgImage(
     id: String? = null,
     transformations: List<Transformation> = listOf(),
 ) {
-    var downloadState = FileRepository.downloadList[file.id]
+    val downloadState = FileRepository.downloadList[file.id]
     var id by remember { mutableStateOf(id ?: UUID.randomUUID().toString()) }
     LaunchedEffect(Unit) {
         FileRepository.downloadFile(file)
@@ -108,8 +107,8 @@ fun SharedTransitionScope.TgImage(
 fun TgImage(
     file: File,
     thumbnail: ByteArray?,
+    modifier: Modifier = Modifier,
     transformations: List<Transformation> = listOf(),
-    modifier: Modifier = Modifier
 ) {
     var localPath by remember { mutableStateOf(file.local.path) }
     LaunchedEffect(Unit) {

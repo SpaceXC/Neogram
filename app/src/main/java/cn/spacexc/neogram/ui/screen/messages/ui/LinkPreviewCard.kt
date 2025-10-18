@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.ui.icons.ExternalLink
 import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.screen.link.LinkProcessScreen
 import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.telegram.ui.component.clickVfx
@@ -53,7 +54,9 @@ fun SharedTransitionScope.LinkPreviewCard(
     Box(
         modifier = modifier
             .sharedElement(rememberSharedContentState("$messageId linkBox"), animatedContentScope)
-            .clickVfx(onLongClick = {
+            .clickVfx(onClick = {
+                navController.navigate(LinkProcessScreen(preview.url))
+            }, onLongClick = {
                 navController.navigate(LinkPreviewScreen(
                     preview.title, preview.displayUrl, preview.description.text, senderColor.red, senderColor.green, senderColor.blue, messageId
                 ))

@@ -56,8 +56,11 @@ import cn.spacexc.neogram.ui.theme.CardGray
 import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
+import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.ToastUtils
 import cn.spacexc.telegram.ui.component.clickVfx
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 import org.drinkless.tdlib.TdApi.UserStatusOnline
@@ -102,6 +105,7 @@ fun SharedTransitionScope.ForwardMessageScreen(
                             .padding(horizontal = 8.dp)
                             .animateItem()
                             .clickVfx {
+                                LogUtils.info("Forward!!!", "Forwarding")
                                 TdClient.send(
                                     TdApi.ForwardMessages(
                                         chat.id,
@@ -113,11 +117,15 @@ fun SharedTransitionScope.ForwardMessageScreen(
                                         false
                                     ),
                                     {
-                                        ToastUtils.toast("转发成功")
-                                        navController.navigateUp()
+                                        MainScope().launch {
+                                            ToastUtils.toast("转发成功")
+                                            navController.navigateUp()
+                                        }
                                     },
                                     {
-                                        ToastUtils.toast("转发失败")
+                                        MainScope().launch {
+                                            ToastUtils.toast("转发失败")
+                                        }
                                     }
                                 )
                             },

@@ -23,6 +23,8 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,12 +46,15 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.icons.AddEmoji
 import cn.spacexc.neogram.ui.icons.NeogramIcons
+import cn.spacexc.neogram.ui.screen.messages.sticker.StickerMessage
+import cn.spacexc.neogram.ui.screen.messages.sticker.StickersScreen
 import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.telegram.ui.component.clickVfx
 import kotlinx.serialization.Serializable
+import org.drinkless.tdlib.TdApi
 
 @Serializable
 data class SendMessageScreen(
@@ -75,6 +80,22 @@ fun SharedTransitionScope.SendMessageScreen(
     val viewModel = viewModel { SendMessageViewModel(props.chatId, props.replyToMessageId) }
     var inputValue by remember { mutableStateOf(props.messageContentToEdit ?: props.defaultValue) }
     var isLoading by remember { mutableStateOf(false) }
+    val stickerToSend = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<StickerMessage?>(
+            "stickerToSend", null
+        )?.collectAsState()
+    LaunchedEffect(stickerToSend) {
+        stickerToSend?.value?.let { sticker ->
+            viewModel.sendStickerMessage(
+                sticker.fileId,
+                sticker.width,
+                sticker.height,
+                sticker.emoji
+            )
+            navController.navigateUp()
+        }
+    }
     TitleFrame("编辑消息", timeText = props.receiverName, onTitleClicked = {}, onActionClicked = {
         //viewModel.updateDraftMessage(inputValue)
         navController.navigateUp()
@@ -162,7 +183,10 @@ fun SharedTransitionScope.SendMessageScreen(
             ) {
                 NeoCard(
                     modifier = Modifier
-                        .size(inputBarHeight),
+                        .size(inputBarHeight)
+                        .clickVfx {
+                            navController.navigate(StickersScreen)
+                        },
                     background = InputBarGray,
                     borderAlpha = 0.03f,
                     shape = RoundedCornerShape(40)
@@ -179,11 +203,27 @@ fun SharedTransitionScope.SendMessageScreen(
                 NeoCard(
                     modifier = Modifier
                         .clickVfx {
-                            viewModel.sendTextMessage(inputValue)
-                            navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.set("inputValue", "")
-                            navController.navigateUp()
+                            if (props.messageIdToEdit == null) {
+                                viewModel.sendTextMessage(inputValue)
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("inputValue", "")
+                                navController.navigateUp()
+                            } else {
+                                isLoading = true
+                                viewModel.updateTextMessage(
+                                    messageId = props.messageIdToEdit,
+                                    textContent = inputValue,
+                                    {
+                                        navController.previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set("inputValue", "")
+                                        navController.navigateUp()
+                                    },
+                                    {
+                                        isLoading = false
+                                    })
+                            }
                         }
                         .weight(1f)
                         .onSizeChanged { size ->

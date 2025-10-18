@@ -72,6 +72,7 @@ import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
 import cn.spacexc.telegram.ui.component.clickVfx
+import coil3.transform.CustomBlurTransformation
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -150,9 +151,7 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                         photo.big,
                                         photo.minithumbnail?.data,
                                         modifier = Modifier
-
                                             .fillMaxWidth()
-                                            //.alpha(0f)
                                             .blur(20.dp)
                                             .padding(bottom = 20.dp)
                                             .alpha(1f)
@@ -178,12 +177,7 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
                                     .padding(bottom = 20.dp)
-                                    .padding(horizontal = 11.dp)
-                                    .sharedBounds(
-                                        rememberSharedContentState("username"),
-                                        this@AnimatedContent
-                                    ),
-
+                                    .padding(horizontal = 11.dp),
                                 ) {
                                 Text(
                                     currentUser.username,
@@ -191,10 +185,11 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     fontFamily = miSans,
-                                    modifier = Modifier.sharedBounds(
-                                        rememberSharedContentState("@username"),
-                                        this@AnimatedContent
-                                    ),
+                                    modifier = Modifier
+                                        .sharedBounds(
+                                            rememberSharedContentState("username"),
+                                            this@AnimatedContent
+                                        ),
                                     style = TextStyle(
                                         shadow = Shadow(
                                             Color.Black.copy(alpha = 0.7f),
@@ -206,7 +201,10 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                                     "@${currentUser.usernames?.activeUsernames?.firstOrNull() ?: ""}",
                                     color = Color.White,
                                     fontSize = 12.sp,
-                                    modifier = Modifier.alpha(0.7f),
+                                    modifier = Modifier.alpha(0.7f).sharedBounds(
+                                        rememberSharedContentState("@username"),
+                                        this@AnimatedContent
+                                    ),
                                     fontFamily = miSans,
                                     style = TextStyle(
                                         shadow = Shadow(

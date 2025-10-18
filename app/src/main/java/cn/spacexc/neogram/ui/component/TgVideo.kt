@@ -53,7 +53,7 @@ import java.io.File
 fun TgVideo(
     file: TdApi.File,
     modifier: Modifier,
-    navController: NavController,
+    navController: NavController?,
     autoplay: Boolean = false
 ) {
     var downloadState = FileRepository.downloadList[file.id]
@@ -113,7 +113,7 @@ fun TgVideo(
                         )
                     }
                 IconButton(onClick = {
-                    navController.navigate(VideoPlayerScreen(downloadState.localPath))
+                    navController?.navigate(VideoPlayerScreen(downloadState.localPath))
                 }) {
                     Icon(
                         Icons.Rounded.PlayArrow,
