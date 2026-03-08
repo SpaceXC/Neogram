@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.device.SessionsRepository
 import cn.spacexc.neogram.ui.component.NeoCard
@@ -50,7 +49,7 @@ import cn.spacexc.neogram.ui.theme.NeoRed
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.formatTimestamp
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 

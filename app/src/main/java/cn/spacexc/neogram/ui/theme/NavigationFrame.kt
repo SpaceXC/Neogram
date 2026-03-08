@@ -68,7 +68,7 @@ import cn.spacexc.neogram.R
 import cn.spacexc.neogram.data.connection.ConnectionState
 import cn.spacexc.neogram.data.connection.ConnectionStateRepository
 import cn.spacexc.neogram.ui.component.NeoCard
-import cn.spacexc.telegram.ui.component.clickAlpha
+import cn.spacexc.neogram.ui.component.modifier.clickAlpha
 
 val StatusBarsTopPadding: PaddingValues
     @Composable

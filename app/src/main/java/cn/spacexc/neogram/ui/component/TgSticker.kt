@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
-import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
+import cn.spacexc.neogram.ui.component.modifier.shimmerPlaceHolder
 import com.dotlottie.dlplayer.Mode
 import com.lottiefiles.dotlottie.core.compose.ui.DotLottieAnimation
 import com.lottiefiles.dotlottie.core.util.DotLottieSource

@@ -30,8 +30,8 @@ import cn.spacexc.neogram.ui.theme.BadgeGray
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.formatFileSize
-import cn.spacexc.telegram.ui.component.clickAlpha
-import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
+import cn.spacexc.neogram.ui.component.modifier.clickAlpha
+import cn.spacexc.neogram.ui.component.modifier.shimmerPlaceHolder
 import coil3.transform.Transformation
 import org.drinkless.tdlib.TdApi.DownloadFile
 import org.drinkless.tdlib.TdApi.File

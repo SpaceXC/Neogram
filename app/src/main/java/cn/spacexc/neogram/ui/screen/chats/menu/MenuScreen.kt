@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import cn.spacexc.neogram.data.call.CallHandler
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.copy
@@ -71,8 +73,8 @@ import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.username
-import cn.spacexc.telegram.ui.component.clickVfx
-import coil3.transform.CustomBlurTransformation
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
+import cn.spacexc.neogram.ui.screen.call.VoiceCallScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -93,15 +95,11 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
             scrollState.value > containerWidthPx - with(localDensity) { topPadding.toPx() * 2 }
         }
     } //滚动超过一定界限的时候切换头像样式
+
+    val currentCallId by CallHandler.currentCallId.collectAsState()
     Column(
         modifier = modifier.verticalScroll(scrollState)
     ) {
-        /*Box(
-            modifier =
-            //.padding(bottom = 20.dp)
-            //.aspectRatio(1f)
-            //.background(Color.White)
-        ) {*/
         users[currentUserId]?.tgUser?.let { currentUser ->
             val photo = currentUser.profilePhoto
             SharedTransitionLayout(
@@ -314,6 +312,20 @@ fun MenuScreen(modifier: Modifier = Modifier, navController: NavController, topP
                 fontFamily = miSans,
                 textAlign = TextAlign.Center
             )
+            if (currentCallId != 0) {
+                Text(
+                    "Go to call $currentCallId",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickVfx(onClick = {
+                            navController.navigateUp()
+                            navController.navigate(VoiceCallScreen)
+                        }),
+                    color = Color.White,
+                    fontFamily = miSans,
+                    textAlign = TextAlign.Center
+                )
+            }
             SettingsItem(
                 leadingIcon = NeogramIcons.Edit,
                 itemName = "新建对话",

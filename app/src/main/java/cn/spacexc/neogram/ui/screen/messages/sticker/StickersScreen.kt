@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -29,8 +28,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cn.spacexc.neogram.data.TdClient
@@ -38,7 +35,7 @@ import cn.spacexc.neogram.data.sticker.StickerRepository
 import cn.spacexc.neogram.ui.component.TgSticker
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable

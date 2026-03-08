@@ -34,7 +34,7 @@ import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.textDescription
 import cn.spacexc.neogram.utils.username
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import org.drinkless.tdlib.TdApi
 
 @Composable

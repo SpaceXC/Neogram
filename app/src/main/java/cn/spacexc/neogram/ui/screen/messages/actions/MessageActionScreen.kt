@@ -12,17 +12,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import cn.spacexc.neogram.data.TdClient
 import cn.spacexc.neogram.data.chat.ChatListRepository
 import cn.spacexc.neogram.data.user.UserRepository
 import cn.spacexc.neogram.settings.NeogramSettings
@@ -35,10 +34,7 @@ import cn.spacexc.neogram.ui.screen.forward.ForwardMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
 import cn.spacexc.neogram.ui.screen.messages.ui.MessageCard
 import cn.spacexc.neogram.ui.theme.TitleFrame
-import cn.spacexc.neogram.utils.ToastUtils
-import cn.spacexc.telegram.ui.component.clickAlpha
-import cn.spacexc.telegram.ui.component.clickVfx
-import kotlinx.coroutines.launch
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 
@@ -88,6 +84,7 @@ fun SharedTransitionScope.MessageActionsScreen(
                     onVibrate = {},
                     navController = navController,
                     onLocateToMessage = { },
+                    onCheckboxClicked = { },
                     onReplyMessage = { _, _ -> }
                 )
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
@@ -161,6 +158,29 @@ fun SharedTransitionScope.MessageActionsScreen(
                                             message.id
                                         )
                                     )
+                                }
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        NeoIconButton(
+                            icon = Icons.Outlined.Checklist,
+                            iconModifier = Modifier.scale(0.7f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickVfx {
+                                    // Source - https://stackoverflow.com/a/66837741
+                                    // Posted by nglauber
+                                    // Retrieved 2026-02-23, License - CC BY-SA 4.0
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selectedMessage", messageId)
+                                    navController.navigateUp()
                                 }
                         )
                     }

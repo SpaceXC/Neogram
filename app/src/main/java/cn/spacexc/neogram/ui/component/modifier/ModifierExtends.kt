@@ -1,4 +1,4 @@
-package cn.spacexc.telegram.ui.component
+package cn.spacexc.neogram.ui.component.modifier
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

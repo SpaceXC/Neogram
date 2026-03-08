@@ -1,6 +1,5 @@
 package cn.spacexc.neogram.ui.screen.call
 
-import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -74,7 +73,7 @@ import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.toMinSec
 import cn.spacexc.neogram.utils.username
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
 import org.thunderdog.challegram.voip.VoIP

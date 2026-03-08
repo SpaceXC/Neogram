@@ -1,8 +1,12 @@
 package cn.spacexc.neogram.ui.screen.messages.ui
 
 import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +44,7 @@ import androidx.navigation.NavController
 import cn.spacexc.neogram.data.color.AccentColorRepository
 import cn.spacexc.neogram.proto.settings.ChatItemStyle
 import cn.spacexc.neogram.proto.settings.NeogramSettings
+import cn.spacexc.neogram.ui.component.Checkbox
 import cn.spacexc.neogram.ui.component.DraggableBox
 import cn.spacexc.neogram.ui.component.DraggableBoxDirection
 import cn.spacexc.neogram.ui.component.TgImage
@@ -69,6 +74,9 @@ fun SharedTransitionScope.MessageCard(
     settings: NeogramSettings,
     onVibrate: () -> Unit,
     isActionEnabled: Boolean = true,
+    isSelected: Boolean = false,
+    showingCheckbox: Boolean = false,
+    onCheckboxClicked: (Boolean) -> Unit,
     onLocateToMessage: (TdApi.Message) -> Unit,
     onReplyMessage: (String, String) -> Unit
 ) {
@@ -77,6 +85,7 @@ fun SharedTransitionScope.MessageCard(
     var photoFile: TdApi.File? by remember { mutableStateOf(null) }
     var name by remember { mutableStateOf("") }
     var accentColor: AccentColorRepository.AccentColor? by remember { mutableStateOf(null) }
+    val messageBoxOffsetCausedByCheckboxDisplaying by animateDpAsState(if (showingCheckbox) 16.dp else 0.dp)
 
     val isMinimalist = settings.chatItemStyle == ChatItemStyle.Minimalist
 
@@ -120,146 +129,152 @@ fun SharedTransitionScope.MessageCard(
                 .scale(progress)
         )
 
-        when (message.content) {
-            is TdApi.MessageChatJoinByLink -> {
-                MessageNotification("$name 通过链接加入了群聊")
-            }
+        AnimatedVisibility(showingCheckbox, enter = fadeIn(), exit = fadeOut()) {
+            Checkbox(isChecked = isSelected, onCheckedChanged = onCheckboxClicked)
+        }
 
-            is TdApi.MessageChatJoinByRequest -> {
-                MessageNotification("$name 通过申请加入了群聊")
-            }
+        Box(modifier = Modifier.offset(x = messageBoxOffsetCausedByCheckboxDisplaying)) {
+            when (message.content) {
+                is TdApi.MessageChatJoinByLink -> {
+                    MessageNotification("$name 通过链接加入了群聊")
+                }
 
-            is TdApi.MessageChatDeleteMember -> {
-                MessageNotification("$name 移除了成员 ${users[(message.content as TdApi.MessageChatDeleteMember).userId]?.username}")
-            }
+                is TdApi.MessageChatJoinByRequest -> {
+                    MessageNotification("$name 通过申请加入了群聊")
+                }
 
-            is TdApi.MessageExpiredPhoto -> {
-                MessageNotification("图片已失效")
-            }
+                is TdApi.MessageChatDeleteMember -> {
+                    MessageNotification("$name 移除了成员 ${users[(message.content as TdApi.MessageChatDeleteMember).userId]?.username}")
+                }
 
-            is TdApi.MessageExpiredVideo -> {
-                MessageNotification("视频已失效")
-            }
+                is TdApi.MessageExpiredPhoto -> {
+                    MessageNotification("图片已失效")
+                }
 
-            is TdApi.MessageExpiredVideoNote -> {
-                MessageNotification("视频已失效")
-            }
+                is TdApi.MessageExpiredVideo -> {
+                    MessageNotification("视频已失效")
+                }
 
-            is TdApi.MessageExpiredVoiceNote -> {
-                MessageNotification("语音已失效")
-            }
+                is TdApi.MessageExpiredVideoNote -> {
+                    MessageNotification("视频已失效")
+                }
 
-            is TdApi.MessageChatChangeTitle -> {
-                MessageNotification("$name 更改群名为 ${(message.content as TdApi.MessageChatChangeTitle).title}")
-            }
+                is TdApi.MessageExpiredVoiceNote -> {
+                    MessageNotification("语音已失效")
+                }
 
-            is TdApi.MessageChatChangePhoto -> {
-                Column(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                BubbleGray.copy(alpha = 0.5f),
-                                RoundedCornerShape(6.dp)
-                            )
-                            .align(Alignment.CenterHorizontally)
+                is TdApi.MessageChatChangeTitle -> {
+                    MessageNotification("$name 更改群名为 ${(message.content as TdApi.MessageChatChangeTitle).title}")
+                }
+
+                is TdApi.MessageChatChangePhoto -> {
+                    Column(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(
-                            "$name 更改聊天照片为",
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
-                            fontFamily = miSans,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White,
-                            textAlign = TextAlign.Center
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    BubbleGray.copy(alpha = 0.5f),
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .align(Alignment.CenterHorizontally)
+                        ) {
+                            Text(
+                                "$name 更改聊天照片为",
+                                modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
+                                fontFamily = miSans,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        TgImage(
+                            file = (message.content as TdApi.MessageChatChangePhoto).photo.sizes.first().photo,
+                            thumbnail = (message.content as TdApi.MessageChatChangePhoto).photo.minithumbnail?.data,
+                            modifier = Modifier
+                                .fillMaxWidth(0.6f)
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(8.dp))
                         )
                     }
-                    TgImage(
-                        file = (message.content as TdApi.MessageChatChangePhoto).photo.sizes.first().photo,
-                        thumbnail = (message.content as TdApi.MessageChatChangePhoto).photo.minithumbnail?.data,
-                        modifier = Modifier
-                            .fillMaxWidth(0.6f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(8.dp))
+                }
+
+                is TdApi.MessageChatAddMembers -> {
+                    MessageNotification(
+                        "${
+                            (message.content as TdApi.MessageChatAddMembers).memberUserIds.joinToString(
+                                ", "
+                            ) { "${users[it]?.username}" }
+                        }加入了群聊"
                     )
                 }
-            }
 
-            is TdApi.MessageChatAddMembers -> {
-                MessageNotification(
-                    "${
-                        (message.content as TdApi.MessageChatAddMembers).memberUserIds.joinToString(
-                            ", "
-                        ) { "${users[it]?.username}" }
-                    }加入了群聊"
-                )
-            }
-
-            else -> {
-                DraggableBox(
-                    enabled = isActionEnabled,
-                    modifier = Modifier.fillMaxWidth(),
-                    threshold = 50f,
-                    direction = DraggableBoxDirection.SwipeToLeft,
-                    onProgressChange = {
-                        if (progress > 1.2) {
-                            onVibrate()
+                else -> {
+                    DraggableBox(
+                        enabled = isActionEnabled,
+                        modifier = Modifier.fillMaxWidth(),
+                        threshold = 50f,
+                        direction = DraggableBoxDirection.SwipeToLeft,
+                        onProgressChange = {
+                            if (progress > 1.2) {
+                                onVibrate()
+                            }
+                            progress = it
+                        },
+                        triggerThreshold = 50f * 1.1f,
+                        onTriggered = {
+                            onReplyMessage(
+                                name,
+                                message.content.textDescription(users, 12.sp).second.text
+                            )
                         }
-                        progress = it
-                    },
-                    triggerThreshold = 50f * 1.1f,
-                    onTriggered = {
-                        onReplyMessage(
-                            name,
-                            message.content.textDescription(users, 12.sp).second.text
-                        )
-                    }
-                ) {
-                    when (message.content) {
-                        else -> {
-                            if (isMinimalist) {
-                                MinimalistMessageItem(
-                                    isGroupChat = isGroupChat,
-                                    isPreviousOneContinuous = isPreviousOneContinuous,
-                                    isNextOneContinuous = isNextOneContinuous,
-                                    message = message,
-                                    username = name,
-                                    userAccentColor = accentColor,
-                                    userPhoto = photoFile,
-                                    userPhotoThumbnail = photoThumbnail,
-                                    chats = chats,
-                                    users = users,
-                                    messages = messages,
-                                    senderIsMe = senderIsMe,
-                                    isRead = isRead,
-                                    animatedContentScope = animatedContentScope,
-                                    navController = navController,
-                                    settings = settings,
-                                    onLocateToRepliedMessage = onLocateToMessage
-                                )
-                            } else {
-                                BubbledMessageItem(
-                                    isGroupChat = isGroupChat,
-                                    isPreviousOneContinuous = isPreviousOneContinuous,
-                                    isNextOneContinuous = isNextOneContinuous,
-                                    message = message,
-                                    username = name,
-                                    usernameColor = accentColor?.nameColor ?: Color.White,
-                                    chats = chats,
-                                    users = users,
-                                    messages = messages,
-                                    senderIsMe = senderIsMe,
-                                    isRead = isRead,
-                                    animatedContentScope = animatedContentScope,
-                                    navController = navController,
-                                    settings = settings,
-                                    onLocateToRepliedMessage = onLocateToMessage
-                                )
+                    ) {
+                        when (message.content) {
+                            else -> {
+                                if (isMinimalist) {
+                                    MinimalistMessageItem(
+                                        isGroupChat = isGroupChat,
+                                        isPreviousOneContinuous = isPreviousOneContinuous,
+                                        isNextOneContinuous = isNextOneContinuous,
+                                        message = message,
+                                        username = name,
+                                        userAccentColor = accentColor,
+                                        userPhoto = photoFile,
+                                        userPhotoThumbnail = photoThumbnail,
+                                        chats = chats,
+                                        users = users,
+                                        messages = messages,
+                                        senderIsMe = senderIsMe,
+                                        isRead = isRead,
+                                        animatedContentScope = animatedContentScope,
+                                        navController = navController,
+                                        settings = settings,
+                                        onLocateToRepliedMessage = onLocateToMessage
+                                    )
+                                } else {
+                                    BubbledMessageItem(
+                                        isGroupChat = isGroupChat,
+                                        isPreviousOneContinuous = isPreviousOneContinuous,
+                                        isNextOneContinuous = isNextOneContinuous,
+                                        message = message,
+                                        username = name,
+                                        usernameColor = accentColor?.nameColor ?: Color.White,
+                                        chats = chats,
+                                        users = users,
+                                        messages = messages,
+                                        senderIsMe = senderIsMe,
+                                        isRead = isRead,
+                                        animatedContentScope = animatedContentScope,
+                                        navController = navController,
+                                        settings = settings,
+                                        onLocateToRepliedMessage = onLocateToMessage
+                                    )
+                                }
                             }
                         }
                     }

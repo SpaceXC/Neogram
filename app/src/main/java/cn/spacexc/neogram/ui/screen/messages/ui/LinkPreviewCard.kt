@@ -35,7 +35,7 @@ import cn.spacexc.neogram.ui.icons.NeogramIcons
 import cn.spacexc.neogram.ui.screen.link.LinkProcessScreen
 import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalSharedTransitionApi::class)

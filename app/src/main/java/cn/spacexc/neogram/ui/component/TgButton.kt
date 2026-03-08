@@ -1,6 +1,5 @@
 package cn.spacexc.telegram.ui.component
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,12 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.dataStore
-import cn.spacexc.neogram.proto.settings.NeogramSettings
-import cn.spacexc.neogram.proto.settings.neogramSettings
-import cn.spacexc.neogram.settings.SettingsSerializer
 import cn.spacexc.neogram.settings.settingsDataStore
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.ui.theme.parseColor
 

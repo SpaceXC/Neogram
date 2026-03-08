@@ -28,7 +28,7 @@ import cn.spacexc.neogram.ui.component.NeoCard
 import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 
 @Composable
 fun PhoneNumber(viewModel: AuthViewModel) {

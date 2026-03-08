@@ -58,7 +58,7 @@ import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.ToastUtils
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable

@@ -61,8 +61,8 @@ import cn.spacexc.neogram.utils.decodeToPCM
 import cn.spacexc.neogram.utils.extractWaveformUsingJTransforms
 import cn.spacexc.neogram.utils.formatFileSize
 import cn.spacexc.neogram.utils.toMinSec
-import cn.spacexc.telegram.ui.component.clickVfx
-import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.shimmerPlaceHolder
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import kotlin.math.hypot

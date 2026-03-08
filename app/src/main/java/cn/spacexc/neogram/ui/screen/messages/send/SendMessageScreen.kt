@@ -52,9 +52,8 @@ import cn.spacexc.neogram.ui.theme.InputBarGray
 import cn.spacexc.neogram.ui.theme.NeoMain
 import cn.spacexc.neogram.ui.theme.TitleFrame
 import cn.spacexc.neogram.ui.theme.miSans
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.serialization.Serializable
-import org.drinkless.tdlib.TdApi
 
 @Serializable
 data class SendMessageScreen(

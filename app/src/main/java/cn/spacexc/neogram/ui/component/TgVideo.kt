@@ -43,7 +43,7 @@ import cn.spacexc.neogram.ui.theme.BadgeGray
 import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.formatFileSize
 import cn.spacexc.neogram.utils.getVideoFirstFrame
-import cn.spacexc.telegram.ui.component.shimmerPlaceHolder
+import cn.spacexc.neogram.ui.component.modifier.shimmerPlaceHolder
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 import java.io.File

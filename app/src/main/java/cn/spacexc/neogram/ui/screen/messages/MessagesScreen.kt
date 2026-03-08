@@ -40,6 +40,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -85,8 +87,9 @@ import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.ToastUtils
 import cn.spacexc.neogram.utils.getChatActionDescription
-import cn.spacexc.telegram.ui.component.clickAlpha
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickAlpha
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
+import cn.spacexc.neogram.ui.screen.messages.info.ChatInfoScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
@@ -132,6 +135,14 @@ fun SharedTransitionScope.MessagesScreen(
     var cancelAreaPosition by remember { mutableStateOf(Offset.Zero) }
     var cancelAreaSize by remember { mutableStateOf(IntSize.Zero) }
     var currentDragOffset by remember { mutableStateOf(Offset.Zero) }
+    val selectedMessageIds = remember { mutableStateListOf<Long>() }
+    val selectedMessageIdFromActionScreen by navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow("selectedMessage", 0L)?.collectAsState() ?: remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(selectedMessageIdFromActionScreen) {
+        if (selectedMessageIdFromActionScreen != 0L && selectedMessageIds.isEmpty()) selectedMessageIds.add(selectedMessageIdFromActionScreen)
+    }
 
     LaunchedEffect(isRecordingAudio) {
         if (isRecordingAudio) {
@@ -186,10 +197,11 @@ fun SharedTransitionScope.MessagesScreen(
         currentChat?.title ?: "",
         timeText = chatState,
         onTitleClicked = {
-            if (currentChat?.type is TdApi.ChatTypePrivate) {
-                val userId = (currentChat.type as TdApi.ChatTypePrivate).userId
-                TdClient.send(TdApi.CreateCall(userId, VoIP.getProtocol(), false))
-            }
+//            if (currentChat?.type is TdApi.ChatTypePrivate) {
+//                val userId = (currentChat.type as TdApi.ChatTypePrivate).userId
+//                TdClient.send(TdApi.CreateCall(userId, VoIP.getProtocol(), false))
+//            }
+            navController.navigate(ChatInfoScreen(chatId))
         },
         onActionClicked = navController::navigateUp
     ) {
@@ -395,7 +407,7 @@ fun SharedTransitionScope.MessagesScreen(
                             chats = chats,
                             modifier = Modifier
                                 .animateItem()
-                                .clickAlpha(enabled = !isInActionMode, onLongClick = {
+                                .clickAlpha(onLongClick = {
                                     navController.navigate(
                                         MessageActionScreen(
                                             chatId,
@@ -404,7 +416,10 @@ fun SharedTransitionScope.MessagesScreen(
                                             isRead
                                         )
                                     )
-                                    //isInActionMode = true
+                                }, onClick = {
+                                    if (selectedMessageIds.isNotEmpty()) {
+                                        if(selectedMessageIds.contains(message.id)) selectedMessageIds.remove(message.id) else selectedMessageIds.add(message.id)
+                                    }
                                 }),
                             message = message,
                             isPreviousOneContinuous = isPreviousOneContinuous,
@@ -417,6 +432,11 @@ fun SharedTransitionScope.MessagesScreen(
                                 viewModel.vibrate()
                             },
                             navController = navController,
+                            onCheckboxClicked = { checked ->
+                                if(selectedMessageIds.contains(message.id)) selectedMessageIds.remove(message.id) else selectedMessageIds.add(message.id)
+                            },
+                            isSelected = selectedMessageIds.contains(message.id),
+                            showingCheckbox = selectedMessageIds.isNotEmpty(),
                             onLocateToMessage = { messageToLocate ->
                                 if (messageToLocate.chatId == chatId) {
                                     viewModel.locateToMessage(messageToLocate.id, scope)

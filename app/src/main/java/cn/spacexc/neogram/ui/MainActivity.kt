@@ -48,6 +48,7 @@ import cn.spacexc.neogram.ui.screen.lock.LockScreen
 import cn.spacexc.neogram.ui.screen.messages.MessagesScreen
 import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionScreen
 import cn.spacexc.neogram.ui.screen.messages.actions.MessageActionsScreen
+import cn.spacexc.neogram.ui.screen.messages.info.ChatInfoScreen
 import cn.spacexc.neogram.ui.screen.messages.sticker.StickersScreen
 import cn.spacexc.neogram.ui.screen.messages.link.LinkPreviewScreen
 import cn.spacexc.neogram.ui.screen.messages.send.SendMessageScreen
@@ -229,6 +230,11 @@ class MainActivity : ComponentActivity() {
                         composable<LinkProcessScreen> {
                             val (link) = it.toRoute<LinkProcessScreen>()
                             LinkProcessScreen(navController, link)
+                        }
+
+                        composable<ChatInfoScreen> {
+                            val (chatId) = it.toRoute<ChatInfoScreen>()
+                            ChatInfoScreen(navController, chatId)
                         }
                     }
                 }

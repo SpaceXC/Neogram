@@ -94,7 +94,7 @@ import cn.spacexc.neogram.ui.theme.miSans
 import cn.spacexc.neogram.utils.LogUtils
 import cn.spacexc.neogram.utils.getChatActionDescription
 import cn.spacexc.neogram.utils.textDescription
-import cn.spacexc.telegram.ui.component.clickVfx
+import cn.spacexc.neogram.ui.component.modifier.clickVfx
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.drinkless.tdlib.TdApi
